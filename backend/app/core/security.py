@@ -67,10 +67,17 @@ def verify_token(token: str) -> Optional[tuple[str, str]]:
     """Validate token format and signature. Returns (user_id, role) if valid, else None."""
     if not token.startswith("px_"):
         return None
-    parts = token.split("_")
-    if len(parts) != 4:
+    stripped = token[3:]
+    if "_" not in stripped:
         return None
-    _, user_id, role, sig = parts
+    try:
+        user_id, rest = stripped.split("_", 1)
+        if "_" not in rest:
+            return None
+        role, sig = rest.rsplit("_", 1)
+    except ValueError:
+        return None
+
     expected = hmac.new(
         TOKEN_SALT.encode(),
         f"{user_id}:{role}:{DEFAULT_TENANT_ID}".encode(),

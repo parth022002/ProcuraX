@@ -20,8 +20,13 @@ if hasattr(sys.stdout, "reconfigure"):
 
 from fastapi.testclient import TestClient
 from app.main import app
+from app.core.security import generate_mock_token, DEFAULT_TENANT_ID
 
 client = TestClient(app)
+cpo_token = generate_mock_token("USR-CPO-01", "CPO", DEFAULT_TENANT_ID)
+planner_token = generate_mock_token("USR-PLANNER-01", "SUPPLY_CHAIN_PLANNER", DEFAULT_TENANT_ID)
+cpo_headers = {"Authorization": f"Bearer {cpo_token}"}
+planner_headers = {"Authorization": f"Bearer {planner_token}"}
 
 
 def log_header(title: str, step_num: int):
@@ -162,6 +167,7 @@ def run_showcase():
     run_resp = client.post(
         "/api/v1/cases/run",
         json={"supplier_id": "SUP-1047", "trigger_type": "SIGNAL_INTELLIGENCE", "disruption_lead_time_days": 14.0},
+        headers=cpo_headers,
     )
     assert run_resp.status_code == 201, "Case execution failed"
     case = run_resp.json()
@@ -186,6 +192,7 @@ def run_showcase():
             "idempotency_key": f"IDEM-PLANNER-{case_id}",
             "selected_scenario_id": "SCN-D",
         },
+        headers=planner_headers,
     )
     assert planner_resp.status_code == 403, "Planner must be denied for high spend"
     print(f"[OK] RBAC Spend Threshold Enforcement: Supply Chain Planner correctly denied (HTTP 403: {planner_resp.json()['detail'][:60]}...)")
@@ -201,6 +208,7 @@ def run_showcase():
             "idempotency_key": f"IDEM-CPO-APPROVED-{case_id}",
             "selected_scenario_id": "SCN-D",
         },
+        headers=cpo_headers,
     )
     assert cpo_resp.status_code == 200, "CPO approval failed"
     approved_case = cpo_resp.json()
@@ -235,6 +243,7 @@ def run_showcase():
             "outcome_label": "MITIGATED_SUCCESS",
             "notes": "Assembly lines in Pune and Chennai maintained full uptime without downtime.",
         },
+        headers=cpo_headers,
     )
     assert outcome_resp.status_code == 200, "Outcome logging failed"
     outcome_case = outcome_resp.json()
