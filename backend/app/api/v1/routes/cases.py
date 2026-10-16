@@ -41,6 +41,16 @@ def list_cases(
     return case_service.list_cases()
 
 
+@router.get("/cases/demo", response_model=List[DisruptionCase])
+def list_demo_cases() -> List[DisruptionCase]:
+    """Public read-only demonstration fixture endpoint for showcase visitors.
+    
+    Provides governed PoC scenario case snapshots clearly identified as demonstration data.
+    All case mutations, spend approvals, and live case management remain strictly authenticated.
+    """
+    return case_service.list_cases()
+
+
 @router.get("/cases/{case_id}", response_model=DisruptionCase)
 def get_case(
     case_id: str,

@@ -299,7 +299,7 @@ export function ApprovalWorkbenchView({ initialScenarioId = 'SCN-D' }: { initial
             <div className="action-packet-body">
               <div className="packet-id-row">
                 <span>Packet ID: <strong className="packet-id-badge">{activeCase.action_packet.packet_id}</strong></span>
-                <span className="pill green" style={{ fontSize: '9.5px' }}>is_proposal_only: true</span>
+                <span className="pill green" style={{ fontSize: '11px', fontWeight: 600 }}>is_proposal_only: true</span>
               </div>
               <div className="packet-meta-grid">
                 <div className="meta-pair">

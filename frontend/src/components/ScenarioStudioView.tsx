@@ -498,8 +498,8 @@ export function ScenarioStudioView({ onSelectScenario }: ScenarioStudioProps) {
                 cursor: 'pointer',
               }}
             >
-              <div style={{ fontWeight: 800, fontSize: '11.5px', color: isActive ? '#E58B45' : 'var(--text-main)' }}>{dom.label}</div>
-              <div style={{ fontSize: '8.5px', color: '#64716B', marginTop: '3px' }}>{dom.subtitle}</div>
+              <div style={{ fontWeight: 800, fontSize: '12px', color: isActive ? '#E58B45' : 'var(--text-main)' }}>{dom.label}</div>
+              <div style={{ fontSize: '11px', color: '#64716B', marginTop: '3px' }}>{dom.subtitle}</div>
             </button>
           )
         })}
@@ -650,7 +650,7 @@ export function ScenarioStudioView({ onSelectScenario }: ScenarioStudioProps) {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', gap: '16px', flexWrap: 'wrap' }}>
             <div>
-              <span style={{ fontSize: '9px', fontFamily: 'DM Mono', color: 'var(--copper-accent)', fontWeight: 700, letterSpacing: '1px' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'DM Mono', color: 'var(--copper-accent)', fontWeight: 700, letterSpacing: '1px' }}>
                 SELECTED PLAN INSPECTION & HAND-OFF
               </span>
               <h3 style={{ margin: '4px 0 0', fontSize: '18px', fontFamily: 'Manrope', color: 'var(--text-main)', fontWeight: 800 }}>
@@ -667,25 +667,25 @@ export function ScenarioStudioView({ onSelectScenario }: ScenarioStudioProps) {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '18px' }}>
             <div style={{ background: '#FAFAF7', border: '1px solid var(--border-subtle)', padding: '14px', borderRadius: '8px' }}>
-              <span style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Total Mitigation Spend</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Total Mitigation Spend</span>
               <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
                 ₹{(selectedScenario.total_mitigation_cost_inr / 100000).toFixed(2)} Lakhs
               </div>
             </div>
             <div style={{ background: '#FAFAF7', border: '1px solid var(--border-subtle)', padding: '14px', borderRadius: '8px' }}>
-              <span style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Net Avoided Line Downtime</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Net Avoided Line Downtime</span>
               <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--success)', marginTop: '4px' }}>
                 ₹{(selectedScenario.net_avoided_loss_inr / 10000000).toFixed(2)} Cr
               </div>
             </div>
             <div style={{ background: '#FAFAF7', border: '1px solid var(--border-subtle)', padding: '14px', borderRadius: '8px' }}>
-              <span style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Calculated ROI</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Calculated ROI</span>
               <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--forest-primary)', marginTop: '4px' }}>
                 {selectedScenario.roi_percentage > 0 ? `${selectedScenario.roi_percentage.toFixed(1)}%` : 'N/A'}
               </div>
             </div>
             <div style={{ background: '#FAFAF7', border: '1px solid var(--border-subtle)', padding: '14px', borderRadius: '8px' }}>
-              <span style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Governance Sign-Off Required</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Governance Sign-Off Required</span>
               <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--warning)', marginTop: '6px' }}>
                 {selectedScenario.requires_executive_approval ? 'CPO / Executive VP' : 'Supply Chain Manager'}
               </div>

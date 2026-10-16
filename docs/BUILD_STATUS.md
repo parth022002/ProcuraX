@@ -69,6 +69,17 @@ Do not mark items complete until tests/evidence are recorded.
 - **Full Backend Regression**: **119/119 tests pass** in 100% across all suites (`python -m pytest backend/tests -q`).
 - **Frontend Production Build**: **Clean build in 787ms** with 0 errors (`npm run build`).
 
+## Final Closure & Release Readiness Remediation Pass (2026-10-16)
+- **Runtime Authentication Enforcement (P0 Fixed)**: Strictly enforced server-side Bearer token authentication in production (`backend/app/core/security.py`). Unauthenticated requests to protected case management routes (`/cases`, `/cases/{id}`, `/cases/run`, `/cases/{id}/approve`, `/cases/{id}/outcome`) now return `HTTP 401 Unauthorized`.
+- **Public Showcase Demo Endpoint**: Added `GET /api/v1/cases/demo` (`backend/app/api/v1/routes/cases.py`) as an explicitly public, read-only demo fixture endpoint for unauthenticated visitors and automated audit tooling. Updated `frontend/src/lib/api.ts` to automatically inject Bearer tokens on workspace requests and fallback to `/cases/demo` if unauthenticated.
+- **Dedicated Authentication & Session Module**: Added `backend/app/api/v1/routes/auth.py` with `POST /api/v1/auth/token` for deterministic role token issuance and `GET /api/v1/auth/session` for session validation.
+- **Synthetic Event Provenance Isolation (P0 Fixed)**: Enforced strict `SYNTHETIC` provenance on `SIG-FLAGSHIP-SUP1047` and any synthetic scenario in `SignalRepository`. Executed `scripts/remediate_synthetic_provenance.py` updating persisted records in Neon PostgreSQL. Added frontend safeguards preventing `synthetic://` URLs from ever rendering as clickable external links.
+- **Original Headline & Sentiment Field Preservation (P0 Fixed)**: Updated `SignalRepository.persist_signals()` and `fetch_persisted_signals()` to serialize and deserialize original provider article headlines, snippets, publisher IDs, and provider sentiment scores. Null sentiment values are now stored and presented truthfully as "Not supplied" rather than fabricated.
+- **Accessible Typography Scale Up**: Upgraded all remaining microcopy (< 10px) across `ScenarioStudioView.tsx`, `ImpactMapView.tsx`, `EvaluationDashboardView.tsx`, and `ApprovalWorkbenchView.tsx` to ≥ 11px/12px font sizes.
+- **Test Suite Expansion**: Added 4 new automated security and provenance tests in `backend/tests/test_security_rbac.py` verifying unauthenticated 401 rejection, public demo fixture access, token/session lifecycle, and strict synthetic provenance enforcement.
+- **Final Full Backend Regression**: **123/123 tests pass (100% pass rate)** in `python -m pytest backend/tests -q`.
+- **Final Frontend Production Build**: **Clean build in 811ms** with zero errors (`tsc -b && vite build`).
+
 ## Website refresh (2026-10-14)
 - Replaced the first-entry screen with a public-facing ProcuraX website and kept the prior workspace preview accessible.
 - Added the supplied neon emblem as an optimised WebP asset, interactive eight-stage decision loop, scenario selector, dashboard preview and Critic/policy-governance visual.

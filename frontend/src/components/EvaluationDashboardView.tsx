@@ -202,7 +202,7 @@ export function EvaluationDashboardView() {
         </div>
         <div className="simulation-badges">
           <span className="pill green">4 ALGORITHM FAMILIES ACTIVE</span>
-          <span className="pill teal">116 BACKEND TESTS PASSING</span>
+          <span className="pill teal">123 BACKEND TESTS PASSING (100%)</span>
           <span className="pill">ZERO_LEAKAGE_VERIFIED</span>
         </div>
       </section>
@@ -354,7 +354,7 @@ export function EvaluationDashboardView() {
                       </td>
                       <td>
                         <strong>{m.model_name}</strong>
-                        <div style={{ fontSize: '9px', color: '#657084' }}>Type: {m.model_type}</div>
+                        <div style={{ fontSize: '11px', color: '#657084' }}>Type: {m.model_type}</div>
                       </td>
                       <td>
                         <span
@@ -502,23 +502,23 @@ export function EvaluationDashboardView() {
                 {/* Diagnostics Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '18px' }}>
                   <div style={{ background: '#f7f8f5', padding: '12px', borderRadius: '8px', border: '1px solid #e2e6e8' }}>
-                    <div style={{ fontSize: '9px', color: '#657084', textTransform: 'uppercase' }}>Target Metric</div>
+                    <div style={{ fontSize: '11px', color: '#657084', textTransform: 'uppercase', fontWeight: 700 }}>Target Metric</div>
                     <div style={{ fontWeight: 800, fontSize: '13px', color: '#151b2c' }}>{forecastResult.target_metric}</div>
                   </div>
                   <div style={{ background: '#f7f8f5', padding: '12px', borderRadius: '8px', border: '1px solid #e2e6e8' }}>
-                    <div style={{ fontSize: '9px', color: '#657084', textTransform: 'uppercase' }}>Mean Forecast Demand</div>
+                    <div style={{ fontSize: '11px', color: '#657084', textTransform: 'uppercase', fontWeight: 700 }}>Mean Forecast Demand</div>
                     <div style={{ fontWeight: 800, fontSize: '15px', color: '#176B55' }}>
                       {forecastResult.mean_forecast.toFixed(1)} units/day
                     </div>
                   </div>
                   <div style={{ background: '#f7f8f5', padding: '12px', borderRadius: '8px', border: '1px solid #e2e6e8' }}>
-                    <div style={{ fontSize: '9px', color: '#657084', textTransform: 'uppercase' }}>Trend Direction</div>
+                    <div style={{ fontSize: '11px', color: '#657084', textTransform: 'uppercase', fontWeight: 700 }}>Trend Direction</div>
                     <div style={{ fontWeight: 800, fontSize: '13px', color: '#2563eb' }}>
                       {forecastResult.trend_direction}
                     </div>
                   </div>
                   <div style={{ background: '#f7f8f5', padding: '12px', borderRadius: '8px', border: '1px solid #e2e6e8' }}>
-                    <div style={{ fontSize: '9px', color: '#657084', textTransform: 'uppercase' }}>Forecast Error (MAPE)</div>
+                    <div style={{ fontSize: '11px', color: '#657084', textTransform: 'uppercase', fontWeight: 700 }}>Forecast Error (MAPE)</div>
                     <div style={{ fontWeight: 800, fontSize: '15px', color: '#059669' }}>
                       {forecastResult.accuracy_metrics.mape_pct.toFixed(2)}%
                     </div>

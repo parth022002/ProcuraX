@@ -238,26 +238,32 @@ export function DataSourcesView() {
                     <td>
                       <div className="signal-provider-cell">
                         <strong className="provider-name">{s.provider}</strong>
-                        <span className={`pill ${s.provenance === 'PUBLIC_REAL' ? 'green' : ''}`} style={{ fontSize: '9px', padding: '1px 6px' }}>
+                        <span className={`pill ${s.provenance === 'PUBLIC_REAL' ? 'green' : s.provenance === 'SYNTHETIC' ? 'amber' : ''}`} style={{ fontSize: '11px', padding: '2px 8px', fontWeight: 600 }}>
                           {s.provenance || 'PUBLIC_REAL'}
                         </span>
                       </div>
                     </td>
                     <td>
                       <div className="signal-headline-block">
-                        <div className="signal-title">{s.title}</div>
-                        {s.url && (
+                        <div className="signal-title" style={{ fontSize: '14px', fontWeight: 600 }}>{s.title}</div>
+                        {s.url && !s.url.startsWith('synthetic://') && s.provenance !== 'SYNTHETIC' ? (
                           <a
                             href={s.url}
                             target="_blank"
                             rel="noreferrer"
                             className="signal-source-link"
+                            style={{ fontSize: '12px' }}
                           >
                             <span>Open Original Source Link</span>
                             <Icon name="arrow" size={11} />
                           </a>
+                        ) : (
+                          <span style={{ fontSize: '11px', color: '#854d0e', display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontWeight: 600 }}>
+                            <Icon name="shield" size={12} />
+                            <span>Synthetic Scenario Injection (No external URL)</span>
+                          </span>
                         )}
-                        <div className="signal-disclaimer-card">
+                        <div className="signal-disclaimer-card" style={{ fontSize: '11px' }}>
                           <Icon name="shield" size={12} />
                           <span>{s.disclaimer || 'Scenario assumption: Real public external signal mapped to fictional supplier for PoC decision replay only. Not an assertion of real-world liability.'}</span>
                         </div>
@@ -265,13 +271,13 @@ export function DataSourcesView() {
                     </td>
                     <td>
                       <div className="signal-relevance-cell">
-                        <div className="relevance-score-badge">
+                        <div className="relevance-score-badge" style={{ fontSize: '11px' }}>
                           <span>Relevance: <strong>{(s.relevance_score * 100).toFixed(0)}%</strong></span>
                         </div>
                         {s.entities_mentioned && s.entities_mentioned.length > 0 && (
                           <div className="entities-tags-wrap">
                             {s.entities_mentioned.slice(0, 2).map((entity, idx) => (
-                              <span key={idx} className="entity-tag">{entity}</span>
+                              <span key={idx} className="entity-tag" style={{ fontSize: '11px' }}>{entity}</span>
                             ))}
                           </div>
                         )}
@@ -279,28 +285,35 @@ export function DataSourcesView() {
                     </td>
                     <td>
                       <div className="sentiment-cell">
-                        <span
-                          className={`sentiment-badge ${
-                            s.sentiment_score < -0.3
-                              ? 'bearish'
-                              : s.sentiment_score > 0.3
-                              ? 'bullish'
-                              : 'neutral'
-                          }`}
-                        >
-                          {s.sentiment_score > 0 ? `+${s.sentiment_score.toFixed(2)}` : s.sentiment_score.toFixed(2)}
-                          <small>
-                            {s.sentiment_score < -0.3 ? ' Disruption' : s.sentiment_score > 0.3 ? ' Stabilizing' : ' Neutral'}
-                          </small>
-                        </span>
+                        {typeof s.sentiment_score === 'number' ? (
+                          <span
+                            className={`sentiment-badge ${
+                              s.sentiment_score < -0.3
+                                ? 'bearish'
+                                : s.sentiment_score > 0.3
+                                ? 'bullish'
+                                : 'neutral'
+                            }`}
+                            style={{ fontSize: '11px' }}
+                          >
+                            {s.sentiment_score > 0 ? `+${s.sentiment_score.toFixed(2)}` : s.sentiment_score.toFixed(2)}
+                            <small style={{ fontSize: '10px' }}>
+                              {s.sentiment_score < -0.3 ? ' Disruption' : s.sentiment_score > 0.3 ? ' Stabilizing' : ' Neutral'}
+                            </small>
+                          </span>
+                        ) : (
+                          <span className="sentiment-badge neutral" style={{ fontSize: '11px', color: '#64748b' }}>
+                            Not supplied
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td>
                       <div className="timestamp-cell">
-                        <span className="timestamp-date">
+                        <span className="timestamp-date" style={{ fontSize: '12px' }}>
                           {s.published_at ? s.published_at.substring(0, 10) : '2026-09-30'}
                         </span>
-                        <span className="timestamp-provenance">UTC Feeds</span>
+                        <span className="timestamp-provenance" style={{ fontSize: '11px' }}>UTC Feeds</span>
                       </div>
                     </td>
                   </tr>

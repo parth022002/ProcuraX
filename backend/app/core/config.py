@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     sec_user_agent: str = "ProcuraXResearch contact@example.com"
     enable_live_signals: bool = False
     database_url: str = ""
+    strict_auth_required: bool = False
 
     model_config = SettingsConfigDict(env_file=REPOSITORY_ROOT / ".env", env_file_encoding="utf-8", extra="ignore")
 

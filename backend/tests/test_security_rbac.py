@@ -262,3 +262,63 @@ def test_openapi_schema_contains_matching_bearer_auth():
     assert "security" in cases_get
     assert any("BearerAuth" in sec for sec in cases_get["security"])
 
+
+def test_unauthenticated_request_rejected_on_cases_in_production():
+    """Verify that unauthenticated requests to protected case endpoints return HTTP 401 in production."""
+    from app.core.config import settings
+    old_env = settings.app_env
+    old_strict = getattr(settings, "strict_auth_required", False)
+    try:
+        settings.app_env = "production"
+        settings.strict_auth_required = True
+        response = client.get("/api/v1/cases")
+        assert response.status_code == 401
+        assert "Authentication required" in response.json()["detail"]
+    finally:
+        settings.app_env = old_env
+        settings.strict_auth_required = old_strict
+
+
+def test_public_demo_cases_endpoint_accessible_unauthenticated():
+    """Verify that /cases/demo is intentionally public, read-only, and returns demo cases."""
+    response = client.get("/api/v1/cases/demo")
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) >= 1
+    assert data[0]["case_id"] == "CAS-SUP-1047-01"
+
+
+def test_auth_token_issuance_and_session_lifecycle():
+    """Verify that /auth/token issues valid tokens and /auth/session validates them."""
+    token_resp = client.post(
+        "/api/v1/auth/token",
+        json={"role": "CPO", "user_id": "USR-CPO-01"},
+    )
+    assert token_resp.status_code == 200
+    token_data = token_resp.json()
+    assert "access_token" in token_data
+    access_token = token_data["access_token"]
+    assert access_token.startswith("px_USR-CPO-01_CPO_")
+
+    session_resp = client.get(
+        "/api/v1/auth/session",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert session_resp.status_code == 200
+    session_data = session_resp.json()
+    assert session_data["role"] == "CPO"
+    assert session_data["user_id"] == "USR-CPO-01"
+    assert session_data["is_authenticated"] is True
+
+
+def test_synthetic_signal_provenance_strictly_enforced():
+    """Verify that synthetic signals never receive PUBLIC_REAL provenance."""
+    from app.services.signal_intelligence.repository import signal_repository
+    signals = signal_repository.fetch_persisted_signals(supplier_id="SUP-1047")
+    for s in signals:
+        if s.signal_id == "SIG-FLAGSHIP-SUP1047" or "synthetic" in s.provider.lower():
+            assert s.provenance == "SYNTHETIC", f"Signal {s.signal_id} has non-synthetic provenance {s.provenance}"
+            assert s.scenario_disclaimer is not None
+
+

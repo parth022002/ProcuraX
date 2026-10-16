@@ -428,7 +428,7 @@ export function ImpactMapView() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <div>
-                <span style={{ fontSize: '9px', fontFamily: 'DM Mono', color: '#00f2fe', fontWeight: 700, letterSpacing: '1px' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'DM Mono', color: '#00f2fe', fontWeight: 700, letterSpacing: '1px' }}>
                   AUTOMATED BUFFER REBALANCING SOLVER
                 </span>
                 <h3 style={{ margin: '4px 0 0', fontSize: '17px', color: '#ffffff', fontFamily: 'Manrope' }}>
@@ -441,7 +441,7 @@ export function ImpactMapView() {
                   <button
                     onClick={resetTransfer}
                     className="action-button secondary"
-                    style={{ height: '32px', fontSize: '10px', padding: '0 12px' }}
+                    style={{ height: '32px', fontSize: '11px', padding: '0 12px' }}
                   >
                     Reset Simulation
                   </button>
@@ -450,33 +450,33 @@ export function ImpactMapView() {
                 <button
                   onClick={handleExecuteTransfer}
                   className="replay-action-button copper-accent-btn"
-                  style={{ height: '38px', padding: '0 18px', fontSize: '11px', fontWeight: 800 }}
+                  style={{ height: '38px', padding: '0 18px', fontSize: '12px', fontWeight: 800 }}
                 >
                   🚀 Execute Inter-Plant Transfer ({transferUnits} Units)
                 </button>
               )}
             </div>
 
-            <p style={{ margin: '0 0 16px', fontSize: '11px', color: '#4f5b70', lineHeight: 1.5 }}>
+            <p style={{ margin: '0 0 16px', fontSize: '12px', color: '#4f5b70', lineHeight: 1.5 }}>
               Sanand Distribution Center currently holds <strong>32.0 days runway</strong> (1,500 surplus buffer units). A dedicated 24-hour inter-warehouse transfer of <strong>{transferUnits} units</strong> to Pune Central Assembly extends Pune's runway from <strong>1.41 to 5.6 days</strong>, averting assembly stoppage for ₹{(transferUnits * 85).toLocaleString()} freight cost.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
               <div style={{ background: '#f8faf9', border: '1px solid #E7E5DC', padding: '10px 14px', borderRadius: '8px' }}>
-                <span style={{ fontSize: '8.5px', color: '#64716B' }}>Transfer Route</span>
-                <strong style={{ display: 'block', color: 'var(--text-main)', fontSize: '11px', marginTop: '2px' }}>Sanand Depot → Pune Plant</strong>
+                <span style={{ fontSize: '11px', color: '#64716B' }}>Transfer Route</span>
+                <strong style={{ display: 'block', color: 'var(--text-main)', fontSize: '12px', marginTop: '2px' }}>Sanand Depot → Pune Plant</strong>
               </div>
               <div style={{ background: '#f8faf9', border: '1px solid #E7E5DC', padding: '10px 14px', borderRadius: '8px' }}>
-                <span style={{ fontSize: '8.5px', color: '#64716B' }}>Dedicated Express Transit</span>
-                <strong style={{ display: 'block', color: '#176B55', fontSize: '11px', marginTop: '2px' }}>24 Hours (540 km corridor)</strong>
+                <span style={{ fontSize: '11px', color: '#64716B' }}>Dedicated Express Transit</span>
+                <strong style={{ display: 'block', color: '#176B55', fontSize: '12px', marginTop: '2px' }}>24 Hours (540 km corridor)</strong>
               </div>
               <div style={{ background: '#f8faf9', border: '1px solid #E7E5DC', padding: '10px 14px', borderRadius: '8px' }}>
-                <span style={{ fontSize: '8.5px', color: '#64716B' }}>Inter-State Transfer Cost</span>
-                <strong style={{ display: 'block', color: '#197653', fontSize: '11px', marginTop: '2px' }}>₹{(transferUnits * 85).toLocaleString()} (@ ₹85/unit)</strong>
+                <span style={{ fontSize: '11px', color: '#64716B' }}>Inter-State Transfer Cost</span>
+                <strong style={{ display: 'block', color: '#197653', fontSize: '12px', marginTop: '2px' }}>₹{(transferUnits * 85).toLocaleString()} (@ ₹85/unit)</strong>
               </div>
               <div style={{ background: '#f8faf9', border: '1px solid #E7E5DC', padding: '10px 14px', borderRadius: '8px' }}>
-                <span style={{ fontSize: '8.5px', color: '#64716B' }}>Pune Runway Post-Transfer</span>
-                <strong style={{ display: 'block', color: '#176B55', fontSize: '11px', marginTop: '2px' }}>+2.1 Days Extension</strong>
+                <span style={{ fontSize: '11px', color: '#64716B' }}>Pune Runway Post-Transfer</span>
+                <strong style={{ display: 'block', color: '#176B55', fontSize: '12px', marginTop: '2px' }}>+2.1 Days Extension</strong>
               </div>
             </div>
           </div>

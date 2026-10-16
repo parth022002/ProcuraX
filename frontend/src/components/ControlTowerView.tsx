@@ -345,15 +345,24 @@ export function ControlTowerView({ onLaunchCase }: { onLaunchCase: () => void })
               <div key={sig.signal_id} className="signal-feed-item">
                 <div className="signal-header">
                   <span className="signal-provider-tag">{sig.provider}</span>
-                  <span className={`sentiment-tag ${sig.sentiment_score < 0 ? 'negative' : 'neutral'}`}>
-                    Sentiment: {sig.sentiment_score.toFixed(2)}
+                  <span className={`pill ${sig.provenance === 'PUBLIC_REAL' ? 'green' : 'amber'}`} style={{ fontSize: '11px', padding: '1px 6px', fontWeight: 600 }}>
+                    {sig.provenance || 'PUBLIC_REAL'}
+                  </span>
+                  <span className={`sentiment-tag ${typeof sig.sentiment_score === 'number' && sig.sentiment_score < 0 ? 'negative' : 'neutral'}`}>
+                    Sentiment: {typeof sig.sentiment_score === 'number' ? sig.sentiment_score.toFixed(2) : 'Not supplied'}
                   </span>
                   <span className="signal-time">{new Date(sig.published_at).toLocaleDateString()}</span>
                 </div>
                 <h4 className="signal-title">
-                  <a href={sig.url} target="_blank" rel="noopener noreferrer">
-                    {sig.title}
-                  </a>
+                  {sig.url && !sig.url.startsWith('synthetic://') && sig.provenance !== 'SYNTHETIC' ? (
+                    <a href={sig.url} target="_blank" rel="noopener noreferrer">
+                      {sig.title}
+                    </a>
+                  ) : (
+                    <span>
+                      {sig.title} <span style={{ fontSize: '11px', color: '#b45309', fontWeight: 600 }}>(Synthetic Scenario Reference)</span>
+                    </span>
+                  )}
                 </h4>
                 <div className="signal-disclaimer">
                   <strong>Scenario Note:</strong> {sig.disclaimer}

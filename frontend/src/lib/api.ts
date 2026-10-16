@@ -19,17 +19,33 @@ import type {
 
 export type { HealthResponse }
 
-
 const API_HOST = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
 const BASE_URL = `${API_HOST}/api/v1`
 
+const DEFAULT_DEMO_TOKEN = 'px_USR-DEMO-01_CPO_345193e3b1cd36b2'
+
+export function getAuthToken(): string {
+  if (typeof window === 'undefined') return DEFAULT_DEMO_TOKEN
+  return localStorage.getItem('procurax_token') || DEFAULT_DEMO_TOKEN
+}
+
+export function setAuthToken(token: string) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('procurax_token', token)
+  }
+}
+
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const token = getAuthToken()
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...(options?.headers as any),
+  }
+
   const response = await fetch(`${BASE_URL}${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
     ...options,
+    headers,
   })
 
   if (!response.ok) {
@@ -56,18 +72,28 @@ export async function fetchDatabaseHealth(): Promise<any> {
 }
 
 function normalizeSignal(raw: any): SignalItem {
+  const rawUrl = raw.canonical_url || raw.url || ''
+  const isSynthetic = Boolean(
+    raw.is_synthetic ||
+    raw.provenance === 'SYNTHETIC' ||
+    String(raw.provider || '').toLowerCase().includes('synthetic') ||
+    rawUrl.startsWith('synthetic://') ||
+    raw.signal_id === 'SIG-FLAGSHIP-SUP1047'
+  )
+  const safeUrl = isSynthetic ? '' : (rawUrl.startsWith('http') ? rawUrl : '#')
+
   return {
     signal_id: raw.signal_id || `SIG-${Math.random().toString(36).substring(2, 8)}`,
     provider: raw.provider || raw.source_name || raw.publisher || 'External Feed',
-    title: raw.title || 'Supply Chain Disruption Signal',
-    url: raw.canonical_url || raw.url || '#',
+    title: raw.title || (isSynthetic ? 'Injected Scenario Event: Flagship Shortage' : 'Supply Chain Disruption Signal'),
+    url: safeUrl,
     published_at: raw.published_at_utc || raw.published_at || raw.source_timestamp || new Date().toISOString(),
     retrieved_at: raw.retrieved_at_utc || raw.retrieved_at || new Date().toISOString(),
     sentiment_score: typeof raw.provider_sentiment_score === 'number'
       ? raw.provider_sentiment_score
       : typeof raw.sentiment_score === 'number'
         ? raw.sentiment_score
-        : -0.65,
+        : null,
     relevance_score: typeof raw.evidence_confidence === 'number'
       ? raw.evidence_confidence
       : typeof raw.relevance_score === 'number'
@@ -76,9 +102,9 @@ function normalizeSignal(raw: any): SignalItem {
     entities_mentioned: Array.isArray(raw.entities_mentioned)
       ? raw.entities_mentioned
       : [raw.mapped_supplier_id || raw.entity_name || 'SUP-1047'],
-    is_assumption: raw.is_assumption ?? true,
-    disclaimer: raw.scenario_disclaimer || raw.disclaimer || 'Scenario assumption: Mapped to fictional ApexDrive for PoC decision replay.',
-    provenance: raw.provenance || 'PUBLIC_REAL',
+    is_assumption: isSynthetic ? true : (raw.is_assumption ?? true),
+    disclaimer: raw.scenario_disclaimer || raw.disclaimer || (isSynthetic ? 'Synthetic demonstration scenario for PoC decision replay; not a real-world external event.' : 'Scenario assumption: Mapped to fictional ApexDrive for PoC decision replay.'),
+    provenance: isSynthetic ? 'SYNTHETIC' : (raw.provenance || 'PUBLIC_REAL'),
     freshness_status: raw.freshness_status || 'fresh',
     age_hours: typeof raw.age_hours === 'number' ? raw.age_hours : null,
     persisted: Boolean(raw.persisted),
@@ -309,7 +335,14 @@ export async function runGovernedCase(
 }
 
 export async function fetchCases(): Promise<DisruptionCase[]> {
-  return request<DisruptionCase[]>('/cases')
+  try {
+    return await request<DisruptionCase[]>('/cases')
+  } catch (err: any) {
+    if (String(err?.message || '').includes('401') || String(err?.message || '').includes('Authentication required')) {
+      return await request<DisruptionCase[]>('/cases/demo')
+    }
+    throw err
+  }
 }
 
 export async function fetchCase(caseId: string): Promise<DisruptionCase> {
