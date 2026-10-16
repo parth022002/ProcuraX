@@ -19,6 +19,7 @@ from app.core.config import settings
 # Explicit OpenAPI security scheme for Bearer token authorization
 bearer_scheme = HTTPBearer(
     auto_error=False,
+    scheme_name="BearerAuth",
     description="Bearer token authentication (e.g., 'Bearer px_USR-CPO-01_CPO_...').",
 )
 

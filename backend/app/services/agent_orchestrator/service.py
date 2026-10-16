@@ -63,12 +63,29 @@ class CaseManagementService:
 
         return case
 
+    def _seed_flagship_case(self) -> DisruptionCase:
+        """Seed canonical baseline case for SUP-1047 / DISR-2026-1047 on fresh startup."""
+        case = run_governed_decision_loop(
+            case_id="CAS-SUP-1047-01",
+            supplier_id="SUP-1047",
+            data_dir=self.data_dir,
+            disruption_lead_time_days=14.0,
+            stockout_probability=0.85,
+            force_critic_failure=False,
+        )
+        self._cases[case.case_id] = case
+        return case
+
     def get_case(self, case_id: str) -> Optional[DisruptionCase]:
         with self._lock:
+            if not self._cases and case_id == "CAS-SUP-1047-01":
+                self._seed_flagship_case()
             return self._cases.get(case_id)
 
     def list_cases(self) -> List[DisruptionCase]:
         with self._lock:
+            if not self._cases:
+                self._seed_flagship_case()
             return list(self._cases.values())
 
     def approve_case(self, case_id: str, decision: HumanApprovalDecision) -> DisruptionCase:

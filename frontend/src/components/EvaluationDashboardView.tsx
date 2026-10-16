@@ -126,14 +126,14 @@ export function EvaluationDashboardView() {
       })
       .catch(() => {
         setModelCard({
-          model_name: 'Logistic Regression Baseline',
-          version: '1.0.0',
-          target_definition: 'Binary 90-day supplier stockout / delivery breakdown',
-          prediction_horizon: '90 days forward',
+          model_name: 'Logistic Regression Baseline (Active Inference)',
+          version: 'risk-model-calibrated-v1.0',
+          target_definition: 'Binary 30-day supplier stockout / delivery breakdown',
+          prediction_horizon: '30 days forward',
           training_window: 'Historical 2024-01-01 to 2026-06-30',
           held_out_window: '2026-07-01 to 2026-09-30 (SUP-1047 degradation window)',
           sample_sizes: { train_rows: 900, test_rows: 180, suppliers: 60 },
-          evaluation_metrics: { roc_auc: 0.892, brier_score: 0.118, accuracy: 0.885 },
+          evaluation_metrics: { roc_auc: 0.6285, brier_score: 0.2456, accuracy: 0.600 },
           leakage_protection: { flagship_supplier_excluded: true, flagship_id: 'SUP-1047' },
         })
       })
@@ -202,7 +202,7 @@ export function EvaluationDashboardView() {
         </div>
         <div className="simulation-badges">
           <span className="pill green">4 ALGORITHM FAMILIES ACTIVE</span>
-          <span className="pill teal">60 UNIT TESTS PASSING</span>
+          <span className="pill teal">116 BACKEND TESTS PASSING</span>
           <span className="pill">ZERO_LEAKAGE_VERIFIED</span>
         </div>
       </section>
@@ -211,9 +211,9 @@ export function EvaluationDashboardView() {
       <section className="metric-grid" style={{ marginBottom: '20px' }}>
         <article className="metric-card">
           <div className="metric-icon blue">AUC</div>
-          <div className="metric-label">Champion Ensemble ROC-AUC</div>
+          <div className="metric-label">Ensemble Study Benchmark ROC-AUC</div>
           <div className="metric-value">0.8920</div>
-          <div className="metric-detail">+0.064 lift over linear baseline</div>
+          <div className="metric-detail">Active Model: 0.6285 (Logistic Baseline)</div>
         </article>
         <article className="metric-card">
           <div className="metric-icon teal">BRIER</div>

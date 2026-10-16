@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.core.security import UserContext, get_current_user, enforce_tenant_isolation
+from app.core.security import UserContext, get_current_user, require_roles, enforce_tenant_isolation
 from app.schemas.cases import (
     CaseCreationRequest,
     DisruptionCase,
@@ -127,8 +127,13 @@ def approve_case(
 
 
 @router.post("/cases/{case_id}/outcome", response_model=DisruptionCase)
-def record_outcome(case_id: str, outcome: ObservedOutcome) -> DisruptionCase:
+def record_outcome(
+    case_id: str,
+    outcome: ObservedOutcome,
+    current_user: UserContext = Depends(require_roles(["ADMIN", "PROCUREMENT_MANAGER", "CPO", "SUPPLY_CHAIN_PLANNER"])),
+) -> DisruptionCase:
     """Record post-decision observed operational KPIs separately from prediction features."""
+    enforce_tenant_isolation(current_user, target_tenant_id="ApexDrive Components")
     try:
         return case_service.record_outcome(case_id, outcome)
     except KeyError as exc:

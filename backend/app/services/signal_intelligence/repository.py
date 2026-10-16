@@ -132,7 +132,20 @@ class SignalRepository:
 
             results: list[NormalizedSignal] = []
             for r in raw_rows:
-                meta = r[9] if isinstance(r[9], dict) else {}
+                raw_meta = r[9]
+                if isinstance(raw_meta, dict):
+                    meta = raw_meta
+                elif isinstance(raw_meta, str):
+                    try:
+                        meta = json.loads(raw_meta)
+                    except Exception:
+                        meta = {}
+                else:
+                    meta = {}
+
+                disclaimer = meta.get("scenario_disclaimer")
+                if not disclaimer and r[6] == "SUP-1047":
+                    disclaimer = "Real external public signal mapped to fictional supplier SUP-1047 for PoC decision replay."
                 results.append(
                     NormalizedSignal(
                         signal_id=r[0],
@@ -149,7 +162,7 @@ class SignalRepository:
                         mapped_supplier_id=r[6],
                         mapping_method=meta.get("mapping_method", "none"),
                         mapping_confidence=meta.get("mapping_confidence", 0.0),
-                        scenario_disclaimer=meta.get("scenario_disclaimer"),
+                        scenario_disclaimer=disclaimer,
                         event_type=r[5],
                         event_severity=float(r[7]) if r[7] is not None else 0.0,
                         source_credibility=float(r[8]) if r[8] is not None else 0.70,

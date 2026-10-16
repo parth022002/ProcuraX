@@ -43,6 +43,19 @@ class SignalIntelligenceService:
             health_reports.append(h)
         return health_reports
 
+    def get_signals(self, limit: int = 50, supplier_id: str | None = None) -> list[NormalizedSignal]:
+        """Fetch saved signals from persistent store or cache without blocking on external provider APIs."""
+        if self.repository.is_available():
+            try:
+                persisted = self.repository.fetch_persisted_signals(supplier_id=supplier_id, limit=limit)
+                if persisted:
+                    return persisted
+            except Exception as exc:
+                logger.warning("Failed to fetch persisted signals from repository: %s", exc)
+
+        # Fallback to deterministic offline fixtures (instant execution, zero external network delay)
+        return self.ingest_signals(force_live=False, persist=False)
+
     def ingest_signals(
         self,
         query: str | None = None,
@@ -50,20 +63,39 @@ class SignalIntelligenceService:
         force_live: bool = False,
         persist: bool = True,
     ) -> list[NormalizedSignal]:
-        """Fetch signals across providers, resolve entities, deduplicate, and persist."""
+        """Fetch signals across providers concurrently, resolve entities, deduplicate, and persist."""
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
         use_live = force_live or settings.enable_live_signals
         selected = providers or list(self.providers.keys())
 
         collected_signals: list[NormalizedSignal] = []
 
-        for p_name in selected:
+        def _fetch_single_provider(p_name: str) -> list[NormalizedSignal]:
             provider = self.providers.get(p_name)
             if not provider:
-                continue
+                return []
+            try:
+                res = provider.fetch(query=query, use_live=use_live)
+                if res.status in {ProviderStatus.SUCCESS, ProviderStatus.PARTIAL_SUCCESS}:
+                    return res.normalized_signals
+            except Exception as exc:
+                logger.warning("Provider '%s' fetch error: %s", p_name, exc)
+            return []
 
-            result = provider.fetch(query=query, use_live=use_live)
-            if result.status in {ProviderStatus.SUCCESS, ProviderStatus.PARTIAL_SUCCESS}:
-                collected_signals.extend(result.normalized_signals)
+        # Concurrently fetch from external providers to avoid serial latency buildup
+        with ThreadPoolExecutor(max_workers=min(len(selected), 5)) as executor:
+            future_to_provider = {
+                executor.submit(_fetch_single_provider, p_name): p_name
+                for p_name in selected
+            }
+            for future in as_completed(future_to_provider):
+                p_name = future_to_provider[future]
+                try:
+                    sigs = future.result(timeout=10.0)
+                    collected_signals.extend(sigs)
+                except Exception as exc:
+                    logger.warning("Provider '%s' execution timed out or failed: %s", p_name, exc)
 
         # Entity resolution & scenario mapping
         resolved = [resolve_signal_entity(s) for s in collected_signals]

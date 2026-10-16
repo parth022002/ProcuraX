@@ -214,3 +214,51 @@ def test_security_headers_enforced():
     assert response.headers.get("x-frame-options") == "DENY"
     assert response.headers.get("x-xss-protection") == "1; mode=block"
     assert response.headers.get("referrer-policy") == "strict-origin-when-cross-origin"
+
+
+# ==============================================================================
+# 7. Route Security & OpenAPI Consistency
+# ==============================================================================
+
+def test_unauthorized_role_denied_from_scraping():
+    """Verify that read-only ANALYST cannot trigger web scraping."""
+    response = client.post(
+        "/api/v1/signals/scrape",
+        headers={"X-User-Role": "ANALYST"},
+    )
+    assert response.status_code == 403
+    assert "Insufficient permissions" in response.json()["detail"]
+
+
+def test_unauthorized_role_denied_from_recording_outcome():
+    """Verify that read-only ANALYST cannot record operational outcomes."""
+    response = client.post(
+        "/api/v1/cases/CAS-SUP-1047-01/outcome",
+        headers={"X-User-Role": "ANALYST"},
+        json={
+            "case_id": "CAS-SUP-1047-01",
+            "recorded_by": "USR-ANALYST-01",
+            "actual_downtime_days": 2.5,
+            "actual_cost_inr": 1200000.0,
+            "stockout_prevented": True,
+            "service_level_achieved": 0.92,
+            "supplier_response_quality": "High responsiveness",
+            "audit_notes": "Analyst test attempt",
+        },
+    )
+    assert response.status_code == 403
+    assert "Insufficient permissions" in response.json()["detail"]
+
+
+def test_openapi_schema_contains_matching_bearer_auth():
+    """Verify that OpenAPI schema defines BearerAuth and references it on protected endpoints."""
+    schema = app.openapi()
+    assert "components" in schema
+    assert "securitySchemes" in schema["components"]
+    assert "BearerAuth" in schema["components"]["securitySchemes"]
+    assert schema["components"]["securitySchemes"]["BearerAuth"]["scheme"] == "bearer"
+    # Verify cases list route declares security
+    cases_get = schema["paths"]["/api/v1/cases"]["get"]
+    assert "security" in cases_get
+    assert any("BearerAuth" in sec for sec in cases_get["security"])
+

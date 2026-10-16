@@ -138,10 +138,50 @@ def get_algorithm_registry() -> dict[str, Any]:
 
 @router.get("/models/benchmark")
 def get_model_benchmark_leaderboard() -> dict[str, Any]:
-    """Return model performance comparison metrics across all 4 machine learning models."""
+    """Return model performance comparison metrics across all machine learning models."""
+    import json
+    from pathlib import Path
+    card_path = Path(__file__).resolve().parents[5] / "models" / "registry" / "logistic_model_card.json"
+    
+    baseline_metrics = {
+        "accuracy": 0.600,
+        "roc_auc": 0.6285,
+        "precision": 0.1842,
+        "recall": 0.5833,
+        "f1_score": 0.280,
+        "brier_score": 0.2456,
+    }
+    if card_path.exists():
+        try:
+            raw_card = json.loads(card_path.read_text(encoding="utf-8"))
+            m = raw_card.get("metrics", {})
+            baseline_metrics["accuracy"] = m.get("accuracy", baseline_metrics["accuracy"])
+            baseline_metrics["roc_auc"] = m.get("roc_auc", baseline_metrics["roc_auc"])
+            baseline_metrics["precision"] = m.get("precision", baseline_metrics["precision"])
+            baseline_metrics["recall"] = m.get("recall", baseline_metrics["recall"])
+            baseline_metrics["f1_score"] = m.get("f1", baseline_metrics["f1_score"])
+            baseline_metrics["brier_score"] = m.get("brier_score", baseline_metrics["brier_score"])
+        except Exception:
+            pass
+
     leaderboard = [
         {
             "rank": 1,
+            "model_type": "logistic",
+            "model_name": "ProcuraX-Disruption-Logistic (Active Baseline)",
+            "accuracy": baseline_metrics["accuracy"],
+            "roc_auc": baseline_metrics["roc_auc"],
+            "precision": baseline_metrics["precision"],
+            "recall": baseline_metrics["recall"],
+            "f1_score": baseline_metrics["f1_score"],
+            "brier_score": baseline_metrics["brier_score"],
+            "status": "ACTIVE_PRODUCTION_BASELINE",
+            "is_active_for_inference": True,
+            "provenance": "SYNTHETIC",
+            "primary_advantage": "Fully interpretable linear coefficient attribution for audit compliance & calibrated inference",
+        },
+        {
+            "rank": 2,
             "model_type": "ensemble",
             "model_name": "ProcuraX-Disruption-Ensemble (Soft-Voting)",
             "accuracy": 0.885,
@@ -150,11 +190,13 @@ def get_model_benchmark_leaderboard() -> dict[str, Any]:
             "recall": 0.865,
             "f1_score": 0.853,
             "brier_score": 0.118,
-            "status": "CHAMPION",
-            "primary_advantage": "Optimal variance reduction across sub-models with lowest calibration error",
+            "status": "CANDIDATE_OFFLINE_STUDY",
+            "is_active_for_inference": False,
+            "provenance": "SYNTHETIC",
+            "primary_advantage": "Offline synthetic benchmark variance reduction study across tree and linear models",
         },
         {
-            "rank": 2,
+            "rank": 3,
             "model_type": "gradient_boosting",
             "model_name": "ProcuraX-Disruption-Gradient-Boosting",
             "accuracy": 0.862,
@@ -163,11 +205,13 @@ def get_model_benchmark_leaderboard() -> dict[str, Any]:
             "recall": 0.840,
             "f1_score": 0.832,
             "brier_score": 0.132,
-            "status": "CANDIDATE",
-            "primary_advantage": "Superior capture of subtle non-linear OTIF decay interactions",
+            "status": "CANDIDATE_OFFLINE_STUDY",
+            "is_active_for_inference": False,
+            "provenance": "SYNTHETIC",
+            "primary_advantage": "Exploratory evaluation of non-linear OTIF decay interactions",
         },
         {
-            "rank": 3,
+            "rank": 4,
             "model_type": "random_forest",
             "model_name": "ProcuraX-Disruption-Random-Forest",
             "accuracy": 0.840,
@@ -176,26 +220,16 @@ def get_model_benchmark_leaderboard() -> dict[str, Any]:
             "recall": 0.815,
             "f1_score": 0.807,
             "brier_score": 0.145,
-            "status": "CANDIDATE",
-            "primary_advantage": "Robust to extreme outlier operational data points without overfitting",
-        },
-        {
-            "rank": 4,
-            "model_type": "logistic",
-            "model_name": "ProcuraX-Disruption-Logistic (Baseline)",
-            "accuracy": 0.815,
-            "roc_auc": 0.828,
-            "precision": 0.778,
-            "recall": 0.792,
-            "f1_score": 0.785,
-            "brier_score": 0.162,
-            "status": "BASELINE",
-            "primary_advantage": "Fully interpretable linear coefficient attribution for audit compliance",
+            "status": "CANDIDATE_OFFLINE_STUDY",
+            "is_active_for_inference": False,
+            "provenance": "SYNTHETIC",
+            "primary_advantage": "Robustness check against operational outlier perturbations",
         },
     ]
 
     return {
         "benchmark_timestamp": "2026-10-15T00:00:00Z",
+        "active_inference_model": "ProcuraX-Disruption-Logistic",
         "test_split_provenance": "SYNTHETIC (Held-out SUP-1047 Degradation Window strictly excluded)",
         "models": leaderboard,
         "champion_model": "ensemble",

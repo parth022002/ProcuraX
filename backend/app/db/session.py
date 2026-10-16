@@ -27,17 +27,20 @@ def check_db_health() -> Dict[str, Any]:
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT version();")
-        pg_version = cur.fetchone()[0]
-
-        cur.execute("SELECT count(*) FROM suppliers;")
-        supplier_count = cur.fetchone()[0]
-
-        cur.execute("SELECT count(*) FROM skus;")
-        sku_count = cur.fetchone()[0]
-
-        cur.execute("SELECT count(*) FROM inventory;")
-        inv_count = cur.fetchone()[0]
+        cur.execute(
+            """
+            SELECT 
+                version(),
+                (SELECT count(*) FROM suppliers),
+                (SELECT count(*) FROM skus),
+                (SELECT count(*) FROM inventory);
+            """
+        )
+        row = cur.fetchone()
+        pg_version = row[0]
+        supplier_count = row[1]
+        sku_count = row[2]
+        inv_count = row[3]
 
         cur.close()
         conn.close()
