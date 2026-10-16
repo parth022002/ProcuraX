@@ -22,8 +22,8 @@ import { DataSourcesView } from './components/DataSourcesView'
 // 7-Stage Governed Decision Loop Pipeline (Executive View)
 export const PIPELINE_STAGES = [
   { id: 1, tab: 'Control Tower', name: 'Alert', desc: 'Signal Detection', badge: 'Active Disruption', color: '#BD3F3F' },
-  { id: 2, tab: 'Supplier 360', name: 'Supplier 360', desc: 'Risk Scoring', badge: '78 / 100 Risk', color: '#9B631C' },
-  { id: 3, tab: 'Impact Map', name: 'Impact', desc: 'Exposure & Runway', badge: '₹2.85 Cr at Risk', color: '#BD3F3F' },
+  { id: 2, tab: 'Supplier 360', name: 'Supplier 360', desc: 'Risk Scoring', badge: '39.7 Risk · 87.1% P', color: '#9B631C' },
+  { id: 3, tab: 'Impact Map', name: 'Impact', desc: 'Exposure & Runway', badge: '₹36.45 Cr (1.41d)', color: '#BD3F3F' },
   { id: 4, tab: 'Scenario Studio', name: 'Scenarios', desc: 'Constraint Solver', badge: '4 Feasible Plans', color: '#176B55' },
   { id: 5, tab: 'Evidence Panel', name: 'AI Evidence', desc: 'RAG & Critic Check', badge: 'Critic Verified', color: '#536F83' },
   { id: 6, tab: 'Approvals', name: 'Approvals', desc: 'Executive Sign-off', badge: 'CPO Required', color: '#197653' },
@@ -53,8 +53,36 @@ const adminNav: NavItem[] = [
   { icon: 'settings', label: 'Integrations & DB', tab: 'Integrations' },
 ]
 
+const TAB_TO_SLUG: Record<string, string> = {
+  'Control Tower': 'control-tower',
+  'Supplier 360': 'supplier-360',
+  'Impact Map': 'impact-map',
+  'Scenario Studio': 'scenario-studio',
+  'Evidence Panel': 'evidence-panel',
+  'Approvals': 'approvals',
+  'Outcome Review': 'outcome-review',
+  'Evaluation': 'evaluation',
+  'Data Sources': 'data-sources',
+  'Integrations': 'integrations',
+}
+
+const SLUG_TO_TAB: Record<string, string> = Object.fromEntries(
+  Object.entries(TAB_TO_SLUG).map(([tab, slug]) => [slug, tab])
+)
+
 function Workspace({ onBack }: { onBack: () => void }) {
-  const [activeTab, setActiveTab] = useState('Control Tower')
+  const getInitialTab = (): string => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const parts = window.location.hash.toLowerCase().split('/')
+      if (parts.length >= 3 && parts[1] === 'workspace') {
+        const slug = parts[2]
+        if (SLUG_TO_TAB[slug]) return SLUG_TO_TAB[slug]
+      }
+    }
+    return 'Control Tower'
+  }
+
+  const [activeTab, setActiveTab] = useState(getInitialTab)
   const [selectedScenario, setSelectedScenario] = useState('SCN-D')
   const [currentStageIdx, setCurrentStageIdx] = useState(0)
   const [health, setHealth] = useState<HealthResponse | null>(null)
@@ -63,6 +91,30 @@ function Workspace({ onBack }: { onBack: () => void }) {
   const [showAdminNav, setShowAdminNav] = useState(true)
   const [quickQueryText, setQuickQueryText] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Sync activeTab with URL hash
+  useEffect(() => {
+    const slug = TAB_TO_SLUG[activeTab] || 'control-tower'
+    const targetHash = `#/workspace/${slug}`
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash
+    }
+  }, [activeTab])
+
+  // Listen to hash changes for browser forward/back buttons
+  useEffect(() => {
+    const handleHash = () => {
+      const parts = window.location.hash.toLowerCase().split('/')
+      if (parts.length >= 3 && parts[1] === 'workspace') {
+        const slug = parts[2]
+        if (SLUG_TO_TAB[slug] && SLUG_TO_TAB[slug] !== activeTab) {
+          setActiveTab(SLUG_TO_TAB[slug])
+        }
+      }
+    }
+    window.addEventListener('hashchange', handleHash)
+    return () => window.removeEventListener('hashchange', handleHash)
+  }, [activeTab])
 
   useEffect(() => {
     fetchHealth()
@@ -334,13 +386,13 @@ function Workspace({ onBack }: { onBack: () => void }) {
             <div className="narrative-body">
               <strong>{PIPELINE_STAGES[currentStageIdx].name}: {PIPELINE_STAGES[currentStageIdx].desc}</strong>
               <p>
-                {currentStageIdx === 0 && 'Signal intelligence detected port congestion and raw-material shortages for flagship supplier SUP-1047. Pune Plant inventory runway is critically down to 3.5 days.'}
-                {currentStageIdx === 1 && 'Validated ML model computed a Disruption Probability of 86/100. SHAP explainability shows lead time variance and transit delays as the top drivers.'}
-                {currentStageIdx === 2 && 'Exposure calculation mapped the shortage to Pune Plant and SKU-WIRE-01. Gross financial risk is €2.85 Cr without intervention.'}
-                {currentStageIdx === 3 && 'Deterministic constraint solver generated 4 feasible mitigation plans. SCN-D (Hybrid Mitigation) achieves the optimal trade-off: 78% risk reduction with €420K cost.'}
+                {currentStageIdx === 0 && 'Signal intelligence detected port congestion and raw-material shortages for flagship supplier SUP-1047. Pune Plant bottleneck inventory runway is critically down to 1.41 days (as of snapshot 2026-09-30).'}
+                {currentStageIdx === 1 && 'Calibrated ML model predicted disruption probability of 87.1%. Governed operational score is 39.7 / 100 (Medium operational risk) with lead time variance and transit delays as top drivers.'}
+                {currentStageIdx === 2 && 'Deterministic network impact traversed 71 SKUs across Chennai, Greater Noida, and Pune plants. Total network revenue exposure is ₹36.45 Cr with Pune bottleneck runway at 1.41 days.'}
+                {currentStageIdx === 3 && 'Deterministic constraint solver generated 4 mitigation plans. Recommended SCN-D (Hybrid Mitigation) deploys ₹1.843 Cr spend to protect ₹20.51 Cr net avoided loss, elevating runway by +11.5 days to 88.6% service level.'}
                 {currentStageIdx === 4 && 'Evidence Copilot grounded the recommendation against DOC-POL-DUAL-SOURCE Section 4.2 and DOC-MSA-APEX-2025. Critic verified evidence sufficiency.'}
-                {currentStageIdx === 5 && 'Policy engine confirmed CPO authority. Executive sign-off authorizes partial shift of 3,500 units to secondary supplier ElectroMotion.'}
-                {currentStageIdx === 6 && 'Decision execution tracked in the outcome review. Plant line maintained 98.4% uptime with €1.9M in net avoided downtime.'}
+                {currentStageIdx === 5 && 'Policy engine evaluated spend against delegated authority threshold (> ₹10 Lakhs: CPO or Category Director authorization required). Safe proposal-only action packet prepared.'}
+                {currentStageIdx === 6 && 'Decision execution tracked in the outcome review. Plant line maintained 98.4% uptime with ₹20.51 Cr in net avoided downtime.'}
               </p>
             </div>
             <div className="narrative-actions">

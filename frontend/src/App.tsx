@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { scenarios } from './data/demo'
 import Workspace from './Workspace'
 import { BrandLogo } from './components/BrandLogo'
@@ -51,9 +51,54 @@ const features = [
 ]
 
 function App() {
-  const [view, setView] = useState<'site' | 'workspace'>('site')
-  const openWorkspace = () => { setView('workspace'); window.scrollTo(0, 0) }
-  return view === 'workspace' ? <Workspace onBack={() => { setView('site'); window.scrollTo({ top: 0, behavior: 'smooth' }) }} /> : <LandingPage onLaunch={openWorkspace} />
+  const getInitialView = (): 'site' | 'workspace' => {
+    const hash = typeof window !== 'undefined' ? window.location.hash.toLowerCase() : ''
+    const path = typeof window !== 'undefined' ? window.location.pathname.toLowerCase() : ''
+    const search = typeof window !== 'undefined' ? window.location.search.toLowerCase() : ''
+    if (
+      hash.startsWith('#/workspace') ||
+      hash.startsWith('#/app') ||
+      path.startsWith('/workspace') ||
+      path.startsWith('/app') ||
+      search.includes('view=workspace')
+    ) {
+      return 'workspace'
+    }
+    return 'site'
+  }
+
+  const [view, setView] = useState<'site' | 'workspace'>(getInitialView)
+
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.toLowerCase()
+      if (hash.startsWith('#/workspace') || hash.startsWith('#/app')) {
+        setView('workspace')
+      } else if (hash === '' || hash === '#/' || hash === '#top') {
+        setView('site')
+      }
+    }
+    window.addEventListener('hashchange', handleHash)
+    return () => window.removeEventListener('hashchange', handleHash)
+  }, [])
+
+  const openWorkspace = (tabSlug?: string) => {
+    setView('workspace')
+    window.location.hash = tabSlug ? `#/workspace/${tabSlug}` : '#/workspace'
+    window.scrollTo(0, 0)
+  }
+
+  const backToSite = () => {
+    setView('site')
+    window.location.hash = '#/'
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  return view === 'workspace' ? (
+    <Workspace onBack={backToSite} />
+  ) : (
+    <LandingPage onLaunch={() => openWorkspace()} />
+  )
 }
 
 function LandingPage({ onLaunch }: { onLaunch: () => void }) {
@@ -80,11 +125,43 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
           <button onClick={() => goTo('platform')}>Platform</button>
           <button onClick={() => goTo('decision-loop')}>Decision loop</button>
           <button onClick={() => goTo('governance')}>Trust & governance</button>
+          <button
+            onClick={() => {
+              setMobileNavOpen(false)
+              onLaunch()
+            }}
+            style={{
+              color: '#d97706',
+              fontWeight: 800,
+              borderTop: mobileNavOpen ? '1px solid rgba(255,255,255,0.1)' : 'none',
+              paddingTop: mobileNavOpen ? '12px' : undefined,
+            }}
+          >
+            Launch Workspace Console →
+          </button>
         </nav>
         <div className="site-nav-actions">
           <button className="site-text-button" onClick={onLaunch}>Workspace preview <Icon name="chevron" size={15}/></button>
-          <button className="site-cta site-cta-small" onClick={() => goTo('product-preview')}>Explore ProcuraX <Icon name="arrow" size={15}/></button>
+          <button className="site-cta site-cta-small" onClick={onLaunch}>Explore ProcuraX <Icon name="arrow" size={15}/></button>
         </div>
+        <button
+          className="mobile-quick-workspace-btn"
+          aria-label="Open Workspace Preview"
+          onClick={onLaunch}
+          style={{
+            display: 'none',
+            padding: '6px 12px',
+            fontSize: '12px',
+            fontWeight: 700,
+            borderRadius: '6px',
+            backgroundColor: '#176B55',
+            color: '#ffffff',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+        >
+          Workspace →
+        </button>
         <button className="mobile-menu-button" aria-label={mobileNavOpen ? 'Close navigation' : 'Open navigation'} onClick={() => setMobileNavOpen(!mobileNavOpen)}><Icon name={mobileNavOpen ? 'x' : 'menu'} size={22}/></button>
       </header>
 

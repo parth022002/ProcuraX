@@ -8,7 +8,7 @@ import { Icon } from './Icons'
 
 export function ApprovalWorkbenchView({ initialScenarioId = 'SCN-D' }: { initialScenarioId?: string }) {
   const [activeCase, setActiveCase] = useState<DisruptionCase | null>(null)
-  const [actorRole, setActorRole] = useState<'SUPPLY_CHAIN_PLANNER' | 'PROCUREMENT_MANAGER' | 'CPO'>('CPO')
+  const [actorRole, setActorRole] = useState<'SUPPLY_CHAIN_PLANNER' | 'PROCUREMENT_MANAGER' | 'CATEGORY_DIRECTOR' | 'CPO'>('CPO')
   const [actorId, setActorId] = useState('USR-CPO-01')
   const [approvalReason, setApprovalReason] = useState('Approved optimal dual-sourcing ramp to safeguard Pune and Chennai assembly lines.')
   const [forceCriticFailure, setForceCriticFailure] = useState(false)
@@ -44,17 +44,18 @@ export function ApprovalWorkbenchView({ initialScenarioId = 'SCN-D' }: { initial
   }
 
   useEffect(() => {
+    setLoading(true)
     fetchCases()
       .then((cases) => {
         if (cases && cases.length > 0) {
           setActiveCase(cases[cases.length - 1])
-        } else {
-          executePipeline(false)
         }
       })
-      .catch(() => {
-        executePipeline(false)
+      .catch((err: any) => {
+        // Read-only mode on mount: do NOT trigger consequential decision runs automatically
+        console.warn('Could not load historical cases:', err.message)
       })
+      .finally(() => setLoading(false))
   }, [])
 
   const handleAction = (action: HumanApprovalAction) => {
@@ -86,12 +87,12 @@ export function ApprovalWorkbenchView({ initialScenarioId = 'SCN-D' }: { initial
 
   const scenarioSpends: Record<string, number> = {
     'SCN-A': 0,
-    'SCN-B': 1240000,
-    'SCN-C': 680000,
-    'SCN-D': 1450000,
+    'SCN-B': 12400000, // ₹1.24 Cr
+    'SCN-C': 6800000,  // ₹68 Lakhs
+    'SCN-D': 18432000, // ₹1.843 Cr (Live Solver Output)
   }
-  const spendAmount = scenarioSpends[selectedScenarioId] ?? 1450000.0
-  const isAuthorizedRole = spendAmount > 1000000 ? actorRole === 'CPO' : true
+  const spendAmount = scenarioSpends[selectedScenarioId] ?? 18432000.0
+  const isAuthorizedRole = spendAmount > 1000000 ? (actorRole === 'CPO' || actorRole === 'CATEGORY_DIRECTOR') : true
 
   return (
     <div className="surface-content">
@@ -132,6 +133,22 @@ export function ApprovalWorkbenchView({ initialScenarioId = 'SCN-D' }: { initial
       {actionSuccess && (
         <div className="notice-banner success-banner">
           <strong>Audit Confirmation:</strong> {actionSuccess}
+        </div>
+      )}
+
+      {!activeCase && (
+        <div className="notice-banner info-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div>
+            <strong>Read-Only Workbench Mode:</strong> No decision case is currently loaded. Click <em>"Run Decision Pipeline"</em> to execute the 11-step governed analysis and generate a case for review.
+          </div>
+          <button
+            className="replay-action-button"
+            onClick={() => executePipeline(false)}
+            disabled={loading}
+            style={{ marginLeft: '16px', whiteSpace: 'nowrap' }}
+          >
+            {loading ? 'Executing Loop…' : 'Run Decision Pipeline (SUP-1047) ▶'}
+          </button>
         </div>
       )}
 

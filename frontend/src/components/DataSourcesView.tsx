@@ -10,17 +10,27 @@ import { Icon } from './Icons'
 
 export function DataSourcesView() {
   const [signals, setSignals] = useState<SignalItem[]>([])
+  const [totalDatabaseSignals, setTotalDatabaseSignals] = useState(0)
   const [loading, setLoading] = useState(false)
   const [ingesting, setIngesting] = useState(false)
   const [scraping, setScraping] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
+  const [scopeFilter, setScopeFilter] = useState<'ALL' | 'SUP-1047'>('ALL')
   const [selectedProvider, setSelectedProvider] = useState<string>('ALL')
 
-  const loadSignals = async () => {
+  const loadSignals = async (overrideScope?: 'ALL' | 'SUP-1047') => {
+    const activeScope = overrideScope || scopeFilter
     setLoading(true)
     try {
-      const res = await fetchSignals('SUP-1047', 50)
+      const supplierParam = activeScope === 'SUP-1047' ? 'SUP-1047' : undefined
+      const res = await fetchSignals(supplierParam, 50)
       setSignals(res.signals || [])
+      setTotalDatabaseSignals(res.total_count || res.signals.length)
+      if (activeScope === 'SUP-1047' && (!res.signals || res.signals.length === 0)) {
+        setStatusMessage('Notice: 0 stored signals directly matched SUP-1047 entity filters (ApexDrive Components). Toggle "All Market Signals" to inspect the complete ingested public feed.')
+      } else {
+        setStatusMessage('')
+      }
     } catch (err: unknown) {
       setStatusMessage(`Failed to load signals: ${err instanceof Error ? err.message : String(err)}`)
     } finally {
@@ -30,13 +40,16 @@ export function DataSourcesView() {
 
   const handleManualFetch = async () => {
     setIngesting(true)
-    setStatusMessage('Triggering live ingestion from GDELT, Marketaux, Alpha Vantage, and NewsData.io...')
+    setStatusMessage('Triggering live ingestion from GDELT, Marketaux, Alpha Vantage, and NewsData.io (request typically takes 12-18s)...')
+    const startTime = Date.now()
     try {
       const result = await triggerSignalIngest(true)
-      setSignals(result.signals || [])
-      setStatusMessage(`Ingestion run complete! ${result.total} signals retrieved & deduplicated via SHA-256 content hashes.`)
+      const duration = ((Date.now() - startTime) / 1000).toFixed(1)
+      await loadSignals('ALL')
+      setScopeFilter('ALL')
+      setStatusMessage(`✓ Ingestion successful in ${duration}s! Retrieved ${result.total} public signals; deduplicated via SHA-256 and persisted to Neon PostgreSQL.`)
     } catch (err: unknown) {
-      setStatusMessage(`Ingestion note: ${err instanceof Error ? err.message : String(err)}`)
+      setStatusMessage(`Live Ingestion note: ${err instanceof Error ? err.message : String(err)}`)
     } finally {
       setIngesting(false)
     }
@@ -44,11 +57,12 @@ export function DataSourcesView() {
 
   const handleWebScrape = async () => {
     setScraping(true)
-    setStatusMessage('Active Web Scraper running: Crawling global supply chain portals (SupplyChainBrain, FreightWaves, Reuters SC)...')
+    setStatusMessage('Active Web Scraper running: Crawling global supply chain portals (SupplyChainBrain, FreightWaves)...')
     try {
       const result = await triggerWebScraper(15)
-      setSignals(result.signals || [])
-      setStatusMessage(`Web Scraping successful! Scraped ${result.total} real-time disruption articles and persisted to Neon PostgreSQL.`)
+      await loadSignals('ALL')
+      setScopeFilter('ALL')
+      setStatusMessage(`✓ Web Scraping successful! Scraped ${result.total} real-time disruption articles and persisted to Neon PostgreSQL.`)
     } catch (err: unknown) {
       setStatusMessage(`Web Scraping note: ${err instanceof Error ? err.message : String(err)}`)
     } finally {
@@ -57,12 +71,12 @@ export function DataSourcesView() {
   }
 
   useEffect(() => {
-    loadSignals()
+    loadSignals('ALL')
   }, [])
 
   const filteredSignals = selectedProvider === 'ALL'
     ? signals
-    : signals.filter((s) => s.provider.toLowerCase() === selectedProvider.toLowerCase())
+    : signals.filter((s) => s.provider.toLowerCase().includes(selectedProvider.toLowerCase()) || selectedProvider.toLowerCase().includes(s.provider.toLowerCase()))
 
   return (
     <div className="surface-content">
@@ -77,7 +91,7 @@ export function DataSourcesView() {
         <div className="data-sources-btn-group">
           <button
             className="data-sources-btn"
-            onClick={loadSignals}
+            onClick={() => loadSignals()}
             disabled={loading || ingesting || scraping}
           >
             <Icon name="refresh" size={14} />
@@ -156,24 +170,47 @@ export function DataSourcesView() {
             <h2>Normalized Signals ({filteredSignals.length})</h2>
             <p>Verified public market signals deduplicated and structured for ML feature mapping</p>
           </div>
-          <div className="role-selector-group">
-            <label htmlFor="provider-filter">Filter Provider:</label>
-            <select
-              id="provider-filter"
-              value={selectedProvider}
-              onChange={(e) => setSelectedProvider(e.target.value)}
-              className="role-dropdown"
-            >
-              <option value="ALL">All Providers ({signals.length})</option>
-              <option value="SupplyChainBrain">SupplyChainBrain (Web)</option>
-              <option value="FreightWaves">FreightWaves (Web)</option>
-              <option value="TheLoadstar">TheLoadstar (Web)</option>
-              <option value="GDELT">GDELT</option>
-              <option value="Marketaux">Marketaux</option>
-              <option value="Alpha Vantage">Alpha Vantage</option>
-              <option value="NewsData.io">NewsData.io</option>
-              <option value="SEC EDGAR">SEC EDGAR</option>
-            </select>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className="segmented-control" style={{ display: 'inline-flex', background: '#eef2f6', borderRadius: '8px', padding: '2px' }}>
+              <button
+                className={`tab-btn ${scopeFilter === 'ALL' ? 'active' : ''}`}
+                style={{ padding: '4px 12px', fontSize: '11px', borderRadius: '6px', border: 'none', background: scopeFilter === 'ALL' ? 'var(--forest-primary)' : 'transparent', color: scopeFilter === 'ALL' ? '#fff' : 'var(--text-main)', cursor: 'pointer' }}
+                onClick={() => {
+                  setScopeFilter('ALL')
+                  loadSignals('ALL')
+                }}
+              >
+                All Public Signals ({totalDatabaseSignals || signals.length})
+              </button>
+              <button
+                className={`tab-btn ${scopeFilter === 'SUP-1047' ? 'active' : ''}`}
+                style={{ padding: '4px 12px', fontSize: '11px', borderRadius: '6px', border: 'none', background: scopeFilter === 'SUP-1047' ? 'var(--forest-primary)' : 'transparent', color: scopeFilter === 'SUP-1047' ? '#fff' : 'var(--text-main)', cursor: 'pointer' }}
+                onClick={() => {
+                  setScopeFilter('SUP-1047')
+                  loadSignals('SUP-1047')
+                }}
+              >
+                Mapped to SUP-1047 Case
+              </button>
+            </div>
+
+            <div className="role-selector-group">
+              <label htmlFor="provider-filter">Provider:</label>
+              <select
+                id="provider-filter"
+                value={selectedProvider}
+                onChange={(e) => setSelectedProvider(e.target.value)}
+                className="role-dropdown"
+              >
+                <option value="ALL">All Providers ({signals.length})</option>
+                <option value="GDELT">GDELT Global News Feed</option>
+                <option value="Marketaux">Marketaux Automotive Wire</option>
+                <option value="Alpha Vantage">Alpha Vantage Commodity Feed</option>
+                <option value="NewsData">NewsData.io Logistics & Sentiment</option>
+                <option value="SEC_EDGAR">SEC EDGAR 10-Q Financial Filings</option>
+                <option value="Web Scraper">Web Scraper (Live Feeds)</option>
+              </select>
+            </div>
           </div>
         </div>
 

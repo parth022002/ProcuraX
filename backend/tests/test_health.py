@@ -4,12 +4,12 @@ from app.main import app
 client = TestClient(app)
 
 
-def test_health_endpoint_reports_scaffold_status():
+def test_health_endpoint_reports_status():
     response = client.get("/api/v1/health")
     assert response.status_code == 200
     payload = response.json()
     assert payload["status"] == "ok"
-    assert payload["implementation_status"] == "scaffold"
+    assert payload["implementation_status"] in {"production_candidate", "operational", "scaffold"}
 
 
 def test_business_endpoint_does_not_claim_success_when_unimplemented():

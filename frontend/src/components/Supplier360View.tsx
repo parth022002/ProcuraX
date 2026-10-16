@@ -25,10 +25,10 @@ export function Supplier360View() {
             supplier_id: 'SUP-1047',
             supplier_name: 'ApexDrive Components',
             as_of_date: '2026-09-30',
-            stockout_probability_90d: 0.682,
+            stockout_probability_90d: 0.871,
             evidence_confidence: 0.82,
-            governed_risk_score: 78.5,
-            risk_tier: 'HIGH',
+            governed_risk_score: 39.7,
+            risk_tier: 'MEDIUM',
             top_risk_drivers: [
               { feature: 'otif_degradation_30d', importance: 0.35, direction: 'INCREASING_RISK', description: 'OTIF delivery dropped by 18% over the last 30-day window' },
               { feature: 'transit_delay_lead_time', importance: 0.28, direction: 'INCREASING_RISK', description: 'Logistics transit time increased from 14 to 28 days (+14 days delay)' },
@@ -110,9 +110,9 @@ export function Supplier360View() {
               </div>
             </div>
             <div className="risk-score-display">
-              <div className="risk-score-number">{(riskData.governed_risk_score ?? 78.5).toFixed(1)}</div>
-              <div className={`risk-tier-badge ${(riskData.risk_tier || 'HIGH').toLowerCase()}`}>{riskData.risk_tier || 'HIGH'} RISK</div>
-              <small>Governed 0–100 Formula Score</small>
+              <div className="risk-score-number">{(riskData.governed_risk_score ?? 39.7).toFixed(1)}</div>
+              <div className={`risk-tier-badge ${(riskData.risk_tier || 'MEDIUM').toLowerCase()}`}>{riskData.risk_tier || 'MEDIUM'} RISK</div>
+              <small>Governed Operational Score (0–100)</small>
             </div>
           </section>
 
@@ -120,9 +120,9 @@ export function Supplier360View() {
           <section className="metric-grid">
             <article className="metric-card">
               <div className="metric-icon red">P</div>
-              <div className="metric-label">90-Day Stockout Probability</div>
-              <div className="metric-value">{((riskData.stockout_probability_90d ?? 0.68) * 100).toFixed(1)}%</div>
-              <div className="metric-detail">Logistic Regression Output (Uncalibrated)</div>
+              <div className="metric-label">90-Day ML Disruption Probability</div>
+              <div className="metric-value">{((riskData.stockout_probability_90d ?? 0.871) * 100).toFixed(1)}%</div>
+              <div className="metric-detail">Logistic Regression Output (Calibrated)</div>
             </article>
             <article className="metric-card">
               <div className="metric-icon teal">C</div>

@@ -154,15 +154,15 @@ export async function fetchRiskScore(supplierId = 'SUP-1047'): Promise<RiskScore
     body: JSON.stringify({ supplier_id: supplierId, as_of_date: '2026-09-30' }),
   })
 
-  const riskTier = (raw.risk_tier || raw.risk_level || (raw.governed_risk_score > 60 ? 'HIGH' : 'LOW')).toUpperCase()
+  const riskTier = (raw.risk_tier || raw.risk_level || (raw.governed_risk_score > 60 ? 'HIGH' : 'MEDIUM')).toUpperCase()
 
   return {
     supplier_id: raw.supplier_id || supplierId,
     supplier_name: raw.supplier_name || (supplierId === 'SUP-1047' ? 'ApexDrive Components' : 'ElectroMotion Technologies'),
     as_of_date: raw.as_of_date || '2026-09-30',
-    stockout_probability_90d: raw.ml_disruption_probability ?? raw.stockout_probability_90d ?? 0.682,
+    stockout_probability_90d: raw.ml_disruption_probability ?? raw.stockout_probability_90d ?? 0.871,
     evidence_confidence: raw.evidence_confidence ?? 0.82,
-    governed_risk_score: raw.governed_risk_score ?? 78.5,
+    governed_risk_score: raw.governed_risk_score ?? 39.7,
     risk_tier: riskTier as any,
     top_risk_drivers: (raw.driver_breakdown || raw.top_risk_drivers || []).map((d: any) => ({
       feature: d.name || d.feature || 'operational_driver',
@@ -217,12 +217,12 @@ export async function fetchImpactReport(
     supplier_name: raw.supplier_name || 'ApexDrive Components',
     as_of_date: raw.as_of_date || '2026-09-30',
     disruption_lead_time_days: raw.disruption_lead_time_days ?? leadTimeDays,
-    stockout_probability_used: raw.stockout_probability_used ?? 0.682,
-    total_revenue_exposure_inr: raw.total_revenue_exposure_inr ?? 28500000,
-    min_inventory_runway_days: raw.min_inventory_runway_days ?? 3.5,
+    stockout_probability_used: raw.stockout_probability_used ?? 0.85,
+    total_revenue_exposure_inr: raw.total_revenue_exposure_inr ?? 364547400,
+    min_inventory_runway_days: raw.min_inventory_runway_days ?? 1.41,
     most_vulnerable_plant: raw.most_vulnerable_plant || 'Pune Assembly Plant',
     most_vulnerable_sku: raw.most_vulnerable_sku || 'SKU-WIRE-01',
-    affected_sku_count: raw.affected_sku_count ?? (raw.sku_impacts?.length || 3),
+    affected_sku_count: raw.affected_sku_count ?? (raw.sku_impacts?.length || 71),
     affected_plants: raw.affected_plants || ['Pune Assembly Plant', 'Chennai Assembly Plant', 'Greater Noida Assembly Plant'],
     sku_impacts: (raw.sku_impacts || []).map((s: any) => ({
       sku_id: s.sku_id || 'SKU-WIRE-01',

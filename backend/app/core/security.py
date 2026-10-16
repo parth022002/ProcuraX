@@ -9,11 +9,18 @@ from __future__ import annotations
 
 import hmac
 import hashlib
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from fastapi import Depends, Header, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 
 from app.core.config import settings
+
+# Explicit OpenAPI security scheme for Bearer token authorization
+bearer_scheme = HTTPBearer(
+    auto_error=False,
+    description="Bearer token authentication (e.g., 'Bearer px_USR-CPO-01_CPO_...').",
+)
 
 
 class UserContext(BaseModel):
@@ -74,6 +81,7 @@ def verify_token(token: str) -> Optional[tuple[str, str]]:
 
 
 async def get_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
     authorization: Optional[str] = Header(None),
     x_user_role: Optional[str] = Header(None),
     x_user_id: Optional[str] = Header(None),
@@ -82,36 +90,42 @@ async def get_current_user(
     """FastAPI dependency resolving authenticated UserContext.
     
     Supports:
-    1. Bearer Token (`Authorization: Bearer px_...`).
+    1. Bearer Token via HTTPAuthorizationCredentials or Authorization Header (`Bearer px_...`).
     2. Explicit headers (`X-User-Role`, `X-User-ID`, `X-Tenant-ID`).
     3. Demo/Development fallback to default procurement manager.
     """
     tenant = x_tenant_id or DEFAULT_TENANT_ID
 
     # 1. Bearer Token Authentication
-    if authorization:
+    raw_token = None
+    if credentials and credentials.credentials:
+        raw_token = credentials.credentials
+    elif authorization:
         parts = authorization.strip().split()
         if len(parts) == 2 and parts[0].lower() == "bearer":
-            token = parts[1]
-            verified = verify_token(token)
-            if verified:
-                uid, role = verified
-                return UserContext(
-                    user_id=uid,
-                    email=f"{uid.lower()}@apexdrive.com",
-                    role=role,
-                    tenant_id=tenant,
-                    is_authenticated=True,
-                )
-            # If explicit token is provided but invalid, reject immediately
+            raw_token = parts[1]
+        else:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired authentication credentials.",
+                detail="Malformed Authorization header format. Expected 'Bearer <token>'.",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+
+    if raw_token:
+        verified = verify_token(raw_token)
+        if verified:
+            uid, role = verified
+            return UserContext(
+                user_id=uid,
+                email=f"{uid.lower()}@apexdrive.com",
+                role=role,
+                tenant_id=tenant,
+                is_authenticated=True,
+            )
+        # If explicit token is provided but invalid, reject immediately
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Malformed Authorization header format. Expected 'Bearer <token>'.",
+            detail="Invalid or expired authentication credentials.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

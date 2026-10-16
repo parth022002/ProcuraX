@@ -4,7 +4,7 @@
  */
 import { useEffect, useState } from 'react'
 import type { SignalItem, SignalProvider } from '../types'
-import { fetchSignalProviders } from '../lib/api'
+import { fetchSignalProviders, fetchSignals } from '../lib/api'
 import { Icon } from './Icons'
 
 interface IncidentAlert {
@@ -23,13 +23,24 @@ const INCIDENTS: IncidentAlert[] = [
   {
     id: 'INC-PROC-1047',
     domain: 'PROCUREMENT',
-    badge: 'PROCUREMENT SHOCK',
-    title: 'SUP-1047: ApexDrive Components · Flagship Sole-Source Tooling Bottleneck',
-    detail: 'Tier-1 high-voltage wiring harness tooling breakdown. Primary production quota delayed +14 days.',
-    runway: '3.5 Days',
-    revenueExposure: '₹2.85 Cr',
+    badge: 'FLAGSHIP DISRUPTION (GOVERNED)',
+    title: 'SUP-1047: ApexDrive Components · High-Voltage Harness Bottleneck',
+    detail: 'Sole-source tooling breakdown delays supply +14 days. Affects 71 SKUs across Chennai, Greater Noida, and Pune plants (Snapshot: 2026-09-30).',
+    runway: '1.41 Days',
+    revenueExposure: '₹36.45 Cr',
     targetEntity: 'ApexDrive Components',
     actionLabel: 'Investigate Supplier Dual-Source →',
+  },
+  {
+    id: 'INC-WH-004',
+    domain: 'WAREHOUSE',
+    badge: 'WAREHOUSE STOCK RISK',
+    title: 'Pune Central Warehouse: Critical Safety Stock Depletion (1.41 Days Remaining)',
+    detail: 'On-hand stock is down to critical buffer for flagship wiring harness. Sanand Hub holds 1,500 surplus units available for echelon transfer.',
+    runway: '1.41 Days',
+    revenueExposure: '₹14.10 Cr',
+    targetEntity: 'Pune Assembly Warehouse',
+    actionLabel: 'Execute Inter-Plant Transfer →',
   },
   {
     id: 'INC-LOG-002',
@@ -52,17 +63,6 @@ const INCIDENTS: IncidentAlert[] = [
     revenueExposure: '₹3.10 Cr',
     targetEntity: 'Automotive Dealer Network',
     actionLabel: 'Pace Production & Buffer →',
-  },
-  {
-    id: 'INC-WH-004',
-    domain: 'WAREHOUSE',
-    badge: 'WAREHOUSE STOCK RISK',
-    title: 'Pune Central Warehouse: Safety Stock Buffer Depletion (3.5 Days Remaining)',
-    detail: 'On-hand stock is down to 1,400 units against 400 units/day run rate. Sanand Hub holds 4,800 units surplus.',
-    runway: '3.5 Days',
-    revenueExposure: '₹1.95 Cr',
-    targetEntity: 'Pune Assembly Warehouse',
-    actionLabel: 'Execute Inter-Plant Transfer →',
   },
 ]
 
@@ -141,12 +141,25 @@ const ALL_SIGNALS: SignalItem[] = [
 
 export function ControlTowerView({ onLaunchCase }: { onLaunchCase: () => void }) {
   const [selectedIncident, setSelectedIncident] = useState<IncidentAlert>(INCIDENTS[0])
-  const [signalFilter, setSignalFilter] = useState<'ALL' | 'PROCUREMENT' | 'LOGISTICS' | 'DEMAND' | 'WAREHOUSE'>('ALL')
-  const [signals] = useState<SignalItem[]>(ALL_SIGNALS)
+  const [signals, setSignals] = useState<SignalItem[]>(ALL_SIGNALS)
   const [providers, setProviders] = useState<SignalProvider[]>([])
-  const [loading] = useState(false)
+  const [signalFilter, setSignalFilter] = useState<'ALL' | 'PROCUREMENT' | 'LOGISTICS' | 'DEMAND' | 'WAREHOUSE'>('ALL')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    setLoading(true)
+    // Attempt fetching real ingested signals from the backend
+    fetchSignals(undefined, 25)
+      .then((res) => {
+        if (res.signals && res.signals.length > 0) {
+          setSignals(res.signals)
+        }
+      })
+      .catch(() => {
+        // Retain verified baseline scenario signals
+      })
+      .finally(() => setLoading(false))
+
     fetchSignalProviders()
       .then((provRes) => {
         const list = Array.isArray(provRes) ? provRes : (provRes.providers || [])
@@ -236,7 +249,7 @@ export function ControlTowerView({ onLaunchCase }: { onLaunchCase: () => void })
           </div>
           <div className="metric-label">Gross Revenue at Risk</div>
           <div className="metric-value">{selectedIncident.revenueExposure}</div>
-          <div className="metric-detail">Shortage units × contribution margin</div>
+          <div className="metric-detail">Network Total · 71 SKUs / 3 Plants</div>
         </article>
 
         <article className="metric-card">
@@ -245,16 +258,16 @@ export function ControlTowerView({ onLaunchCase }: { onLaunchCase: () => void })
           </div>
           <div className="metric-label">Critical Inventory Runway</div>
           <div className="metric-value">{selectedIncident.runway}</div>
-          <div className="metric-detail">Central Pune Facility Buffer</div>
+          <div className="metric-detail">Pune Central Assembly Bottleneck</div>
         </article>
 
         <article className="metric-card">
           <div className="metric-icon teal">
             <Icon name="shield" size={18} />
           </div>
-          <div className="metric-label">Governed Decision Loop</div>
-          <div className="metric-value">7-Stage</div>
-          <div className="metric-detail">Critic-Gated + Deterministic Policy</div>
+          <div className="metric-label">Governed Risk Profile</div>
+          <div className="metric-value">39.7 / 100</div>
+          <div className="metric-detail">Medium Score · 87.1% ML Disruption P</div>
         </article>
       </section>
 
@@ -315,7 +328,7 @@ export function ControlTowerView({ onLaunchCase }: { onLaunchCase: () => void })
                     border: signalFilter === cat ? '0' : '1px solid #E7E5DC',
                     borderRadius: '4px',
                     padding: '3px 7px',
-                    fontSize: '8px',
+                    fontSize: '11px',
                     fontWeight: 700,
                     color: signalFilter === cat ? '#fff' : '#64716B',
                     cursor: 'pointer',

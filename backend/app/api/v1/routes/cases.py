@@ -70,13 +70,36 @@ def approve_case(
     # 1. Enforce Tenant Isolation
     enforce_tenant_isolation(current_user, target_tenant_id="ApexDrive Components")
 
-    # 2. RBAC Guard: Read-only roles cannot approve
-    effective_role = (decision.actor_role or current_user.role).upper()
-    if effective_role == "ANALYST":
+    # 2. RBAC Guard: Server-side authenticated identity governs (client body cannot elevate role)
+    ROLE_HIERARCHY = {
+        "ANALYST": 0,
+        "SUPPLY_CHAIN_PLANNER": 1,
+        "PROCUREMENT_MANAGER": 2,
+        "CATEGORY_DIRECTOR": 3,
+        "CPO": 4,
+    }
+    auth_role = (current_user.role or "ANALYST").upper()
+    if auth_role == "ANALYST":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Role 'ANALYST' has read-only access and cannot submit approval decisions.",
         )
+
+    requested_role = (
+        decision.actor_role.value if hasattr(decision.actor_role, "value") else str(decision.actor_role)
+    ).upper()
+
+    auth_rank = ROLE_HIERARCHY.get(auth_role, 0)
+    req_rank = ROLE_HIERARCHY.get(requested_role, 0)
+
+    # Client payload cannot elevate above authenticated role
+    if req_rank > auth_rank:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Authenticated identity role '{auth_role}' cannot execute actions requiring '{requested_role}'. Privilege escalation blocked.",
+        )
+
+    effective_role = requested_role
     decision.actor_role = effective_role
 
     try:

@@ -2,9 +2,9 @@ import type { Alert, Scenario } from '../types'
 
 // Entire dataset is illustrative/synthetic UI data. Replace with API responses after endpoints pass tests.
 export const alerts: Alert[] = [
-  { supplierId: 'SUP-1047', supplier: 'ApexDrive Components', category: 'Motor components', score: 86, issue: 'Raw-material shortage', impact: 'Illustrative ₹28.4 Cr', updated: '2h ago', status: 'Critical' },
-  { supplierId: 'SUP-1012', supplier: 'ElectroMotion Systems', category: 'Alternate source', score: 34, issue: 'Capacity validation', impact: 'Capacity check needed', updated: '5h ago', status: 'Review' },
-  { supplierId: 'SUP-1033', supplier: 'Gamma Plastics', category: 'Moulded parts', score: 61, issue: 'Quality deterioration', impact: 'Illustrative medium', updated: '1d ago', status: 'High' },
+  { supplierId: 'SUP-1047', supplier: 'ApexDrive Components', category: 'High-voltage Harnesses', score: 39.7, issue: 'Raw-material & Tooling Bottleneck', impact: 'Network ₹36.45 Cr', updated: '2h ago', status: 'Critical' },
+  { supplierId: 'SUP-1012', supplier: 'ElectroMotion Systems', category: 'Approved Alternate Source', score: 24.0, issue: 'Capacity validation', impact: '50% Spare Capacity', updated: '5h ago', status: 'Review' },
+  { supplierId: 'SUP-1033', supplier: 'Gamma Plastics', category: 'Moulded parts', score: 58.2, issue: 'Quality deterioration', impact: 'Medium Exposure', updated: '1d ago', status: 'High' },
 ]
 
 export const scenarios: Scenario[] = [

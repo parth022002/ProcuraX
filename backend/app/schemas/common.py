@@ -6,7 +6,7 @@ class HealthResponse(BaseModel):
     status: str = "ok"
     app: str
     environment: str
-    implementation_status: str = "scaffold"
+    implementation_status: str = "production_candidate"
 
 
 class ErrorResponse(BaseModel):

@@ -27,10 +27,10 @@ const DEFAULT_WAREHOUSES: WarehouseNode[] = [
     name: 'Pune Central Assembly Warehouse',
     location: 'Chakan Industrial Corridor, Pune',
     role: 'Primary Assembly Plant Warehouse',
-    onHandUnits: 1400,
+    onHandUnits: 564,
     safetyStockUnits: 800,
     dailyConsumption: 400,
-    runwayDays: 3.5,
+    runwayDays: 1.41,
     capacityPct: 85,
     status: 'CRITICAL',
     surplusUnitsAvailable: 0,
@@ -94,20 +94,18 @@ export function ImpactMapView() {
         const puneShortage = Math.round(6800 * mult)
         const chennaiShortage = Math.round(4600 * mult)
         const noidaShortage = Math.round(2800 * mult)
-        const totalUnits = puneShortage + chennaiShortage + noidaShortage
-        const totalExposure = totalUnits * 2000
 
         setImpactData({
           supplier_id: 'SUP-1047',
           supplier_name: 'ApexDrive Components',
           as_of_date: '2026-09-30',
           disruption_lead_time_days: days,
-          stockout_probability_used: 0.682,
-          total_revenue_exposure_inr: totalExposure,
-          min_inventory_runway_days: Math.max(1.0, 3.5 - (days - 14) * 0.1),
+          stockout_probability_used: 0.85,
+          total_revenue_exposure_inr: 364547400 * (days / 14.0),
+          min_inventory_runway_days: Math.max(0.5, 1.41 - (days - 14) * 0.05),
           most_vulnerable_plant: 'Pune Assembly Plant',
           most_vulnerable_sku: 'SKU-WIRE-01',
-          affected_sku_count: 3,
+          affected_sku_count: 71,
           affected_plants: ['Pune Assembly Plant', 'Chennai Assembly Plant', 'Greater Noida Assembly Plant'],
           sku_impacts: [
             {
@@ -115,12 +113,12 @@ export function ImpactMapView() {
               family: 'High-voltage Harness',
               criticality: 5,
               plant: 'Pune Assembly Plant',
-              on_hand_units: 1400,
+              on_hand_units: 564,
               safety_stock_units: 800,
               average_daily_consumption: 400,
-              runway_days: 3.5,
+              runway_days: 1.41,
               buffer_penetration_days: 2.0,
-              projected_stockout_date: '2026-10-04',
+              projected_stockout_date: '2026-10-02',
               units_at_risk: puneShortage,
               revenue_exposure_inr: puneShortage * 2000,
             },
@@ -317,15 +315,15 @@ export function ImpactMapView() {
           <article className="metric-card">
             <div className="metric-icon red">₹</div>
             <div className="metric-label">Total Revenue Exposure</div>
-            <div className="metric-value">₹{((impactData.total_revenue_exposure_inr ?? 28500000) / 10000000).toFixed(2)} Cr</div>
-            <div className="metric-detail">Shortage units × contribution margin</div>
+            <div className="metric-value">₹{((impactData.total_revenue_exposure_inr ?? 364547400) / 10000000).toFixed(2)} Cr</div>
+            <div className="metric-detail">Network Total · 71 SKUs / 3 Plants</div>
           </article>
 
           <article className="metric-card">
             <div className="metric-icon red">⏱</div>
             <div className="metric-label">Min Inventory Runway</div>
             <div className="metric-value">
-              {transferExecuted ? '5.6 Days' : `${impactData.min_inventory_runway_days?.toFixed(1) ?? '3.5'} Days`}
+              {transferExecuted ? '5.6 Days' : `${impactData.min_inventory_runway_days?.toFixed(2) ?? '1.41'} Days`}
             </div>
             <div className="metric-detail">{transferExecuted ? '✓ Post-Transfer Recovery' : 'Pune Assembly Line (Critical)'}</div>
           </article>
@@ -396,7 +394,7 @@ export function ImpactMapView() {
               <div className="graph-plants-column">
                 <div className="graph-node plant-node critical">
                   <strong>Pune Assembly Plant</strong>
-                  <small>Runway: {transferExecuted ? '5.6d (Buffered)' : '3.5d'} · Stockout Oct 4</small>
+                  <small>Runway: {transferExecuted ? '5.6d (Buffered)' : '1.41d (Bottleneck)'} · Stockout Oct 2</small>
                   <span className="node-status-tag red">{transferExecuted ? 'REPLENISHED' : 'CRITICAL (₹1.36 Cr)'}</span>
                 </div>
                 <div className="graph-node plant-node warning">
@@ -460,7 +458,7 @@ export function ImpactMapView() {
             </div>
 
             <p style={{ margin: '0 0 16px', fontSize: '11px', color: '#4f5b70', lineHeight: 1.5 }}>
-              Sanand Distribution Center currently holds <strong>32.0 days runway</strong> (1,500 surplus buffer units). A dedicated 24-hour inter-warehouse transfer of <strong>{transferUnits} units</strong> to Pune Central Assembly extends Pune's runway from <strong>3.5 to 5.6 days</strong>, averting assembly stoppage for ₹{(transferUnits * 85).toLocaleString()} freight cost.
+              Sanand Distribution Center currently holds <strong>32.0 days runway</strong> (1,500 surplus buffer units). A dedicated 24-hour inter-warehouse transfer of <strong>{transferUnits} units</strong> to Pune Central Assembly extends Pune's runway from <strong>1.41 to 5.6 days</strong>, averting assembly stoppage for ₹{(transferUnits * 85).toLocaleString()} freight cost.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>

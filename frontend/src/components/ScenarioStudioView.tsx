@@ -21,10 +21,10 @@ const DOMAINS = [
 ]
 
 const SUPPLIER_OPTIONS = [
-  { id: 'SUP-1047', name: 'ApexDrive Components (Flagship Disruption Case)', baselineExposure: 28500000 },
-  { id: 'SUP-1012', name: 'ElectroMotion Systems (Dual-Source Candidate)', baselineExposure: 14200000 },
-  { id: 'SUP-1025', name: 'Precision Die Castings Ltd', baselineExposure: 19800000 },
-  { id: 'SUP-1033', name: 'Gamma Plastics & Polymers', baselineExposure: 16500000 },
+  { id: 'SUP-1047', name: 'ApexDrive Components (Flagship Disruption Case)', baselineExposure: 364547400 },
+  { id: 'SUP-1012', name: 'ElectroMotion Systems (Dual-Source Candidate)', baselineExposure: 142000000 },
+  { id: 'SUP-1025', name: 'Precision Die Castings Ltd', baselineExposure: 198000000 },
+  { id: 'SUP-1033', name: 'Gamma Plastics & Polymers', baselineExposure: 165000000 },
 ]
 
 export function ScenarioStudioView({ onSelectScenario }: ScenarioStudioProps) {
@@ -230,11 +230,11 @@ export function ScenarioStudioView({ onSelectScenario }: ScenarioStudioProps) {
       candidates = [
         {
           scenario_id: 'SCN-A',
-          name: 'Option A: Deplete Local Stock to Zero (Stockout in 3.5 Days)',
-          description: 'Consume on-hand inventory at Pune plant with no inter-warehouse transfers. Line halts Oct 4.',
+          name: 'Option A: Deplete Local Stock to Zero (Stockout in 1.41 Days)',
+          description: 'Consume on-hand inventory at Pune plant with no inter-warehouse transfers. Line halts Oct 2.',
           scenario_type: 'DO_NOTHING',
           is_feasible: false,
-          infeasibility_reasons: ['Critical stockout in 3.5 days; causes assembly stoppage costing ₹48L/day'],
+          infeasibility_reasons: ['Critical stockout in 1.41 days; causes assembly stoppage costing ₹48L/day'],
           total_mitigation_cost_inr: 0,
           baseline_revenue_exposure_inr: baselineExposure,
           residual_revenue_exposure_inr: baselineExposure,
@@ -385,28 +385,28 @@ export function ScenarioStudioView({ onSelectScenario }: ScenarioStudioProps) {
         {
           scenario_id: 'SCN-D',
           name: 'Option D: Hybrid Dual-Source + Safety Stock Expedite',
-          description: 'Optimal balance: shift 40% volume to SUP-1012 and air freight 500 units to bridge runway.',
+          description: 'Optimal balance: shift volume to SUP-1012 and air freight emergency buffer to protect assembly plants.',
           scenario_type: 'HYBRID',
           is_feasible: true,
           infeasibility_reasons: [],
-          total_mitigation_cost_inr: 1450000,
+          total_mitigation_cost_inr: 18432000,
           baseline_revenue_exposure_inr: baselineExposure,
-          residual_revenue_exposure_inr: Math.round(baselineExposure * 0.07),
-          net_avoided_loss_inr: Math.round(baselineExposure * 0.93),
-          roi_percentage: 182.7,
-          runway_gain_days: 12.0,
-          projected_service_level: 0.96,
+          residual_revenue_exposure_inr: 141012300,
+          net_avoided_loss_inr: 205103100,
+          roi_percentage: 1112.6,
+          runway_gain_days: 11.5,
+          projected_service_level: 0.886,
           recovery_time_days: 7.0,
           requires_executive_approval: true,
           approval_role_required: 'CPO',
           constraint_compliance_log: [
-            'Within ElectroMotion 50% capacity limit',
+            'Within ElectroMotion 50% capacity ceiling',
             'Dual-source notice complies with DOC-MSA-APEX Section 14',
-            'Highest net loss avoidance and ROI (Recommended)',
+            'Highest net avoided loss (₹20.51 Cr) and ROI 1,112.6% (Recommended)',
           ],
         },
       ]
-      tradeoffSummary = `SCN-D (Hybrid) delivers optimal 96% service level and saves ₹${((baselineExposure * 0.93) / 10000000).toFixed(2)} Cr for ₹14.5 Lakhs spend.`
+      tradeoffSummary = `SCN-D (Hybrid Mitigation) delivers 88.6% service level, averting ₹20.51 Cr in net losses for ₹1.843 Cr spend (ROI: 1,112.6%, Runway Gain: +11.5 Days).`
     }
 
     return {

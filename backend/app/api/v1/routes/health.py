@@ -12,7 +12,7 @@ def health_check() -> HealthResponse:
         status="ok",
         app=settings.app_name,
         environment=settings.app_env,
-        implementation_status="scaffold",
+        implementation_status="production_candidate",
     )
 
 

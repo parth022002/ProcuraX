@@ -37,7 +37,7 @@ export function OutcomeReviewView() {
           activated_hypotheses: ['H1: Lead time escalation', 'H2: Single-source buffer stockout', 'H3: Dual-source clause invocation'],
           critic_score: 0.88,
           critic_retries_used: 0,
-          risk_score: 78.5,
+          risk_score: 39.7,
           candidate_scenarios: [],
           citations: [],
           audit_trail: [],

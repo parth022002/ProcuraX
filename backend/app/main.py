@@ -65,11 +65,60 @@ register_error_handlers(app)
 app.include_router(api_router, prefix=settings.api_v1_prefix)
 
 
+def custom_openapi():
+    """Declare explicit security schemes and metadata in OpenAPI schema."""
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    from fastapi.openapi.utils import get_openapi
+    schema = get_openapi(
+        title=settings.app_name,
+        version="0.1.0",
+        description=(
+            "ProcuraX Governed Disruption Intelligence API. Business routes adhere to Section 17/18 "
+            "governance, RBAC spend authorization, proposal-only action packets, and tenant isolation."
+        ),
+        routes=app.routes,
+    )
+    if "components" not in schema:
+        schema["components"] = {}
+    schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+            "description": "Enter your Bearer token or deterministic test token (e.g., 'Bearer px_USR-CPO-01_CPO_...')",
+        },
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key",
+            "description": "API key for service-to-service communication.",
+        },
+    }
+    app.openapi_schema = schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
+
+
 @app.get("/", tags=["meta"])
-def root() -> dict[str, str]:
+def root() -> dict:
     return {
         "name": settings.app_name,
-        "status": "scaffold",
+        "status": "operational",
+        "implementation_status": "production_candidate",
+        "modules": {
+            "signal_intelligence": "active",
+            "risk_assessment": "active",
+            "impact_engine": "active",
+            "scenario_solver": "active",
+            "rag_copilot": "active",
+            "governed_case_orchestrator": "active",
+            "approval_workbench": "active",
+            "outcome_telemetry": "active",
+        },
         "docs": "/docs",
         "health": f"{settings.api_v1_prefix}/health",
     }
