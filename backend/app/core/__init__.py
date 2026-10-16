@@ -1,0 +1,1 @@
+"""ProcuraX application package."""
